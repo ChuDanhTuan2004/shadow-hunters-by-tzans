@@ -178,7 +178,7 @@ export default function App() {
         }
 
         setActiveGame(updatedState);
-        if ("waiting_room" === view && "lobby" !== updatedState.phase && "cancelled" !== updatedState.phase) {
+        if ("waiting_room" === view && "lobby" !== updatedState.phase) {
           setView("playing");
         }
         if ("playing" === view && "lobby" === updatedState.phase) {
@@ -741,13 +741,14 @@ export default function App() {
     }
 
     // Check game over
-    const winners = checkVictory(nextState.players);
-    if (null !== winners) {
+    const victoryResult = checkVictory(nextState.players);
+    if (null !== victoryResult) {
       nextState.phase = "game_over";
-      nextState.winnerAlignment = winners;
+      nextState.winnerAlignment = victoryResult.winnerAlignment;
+      nextState.winnerPlayerIds = victoryResult.winnerPlayerIds;
       nextState.players = nextState.players.map(p => ({ ...p, alignmentRevealed: true }));
       nextState.logs = [
-        createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${winners.join(", ")}!`, "system"),
+        createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${victoryResult.winnerAlignment.join(", ")}!`, "system"),
         ...nextState.logs
       ];
     }
@@ -806,7 +807,10 @@ export default function App() {
     }
     
     // Thực hiện tấn công
-    nextState = performAttack(nextState, currentPlayer.id, targetId, null, activeGeorgeAbility);
+    if (activeGeorgeAbility) {
+      nextState = activateCharacterAbility(nextState, currentPlayer.id, targetId);
+    }
+    nextState = performAttack(nextState, currentPlayer.id, targetId);
     
     // Đánh dấu George đã kích hoạt skill
     if (activeGeorgeAbility) {
@@ -875,6 +879,7 @@ export default function App() {
           showGateSelection: false,
           selectedGateDeck: null,
           winnerAlignment: null,
+          winnerPlayerIds: null,
           players: resetPlayers,
           logs: [
             createLog("🔄 Trận đấu kết thúc. Trở lại phòng chờ trực tuyến!"),
@@ -1171,16 +1176,26 @@ export default function App() {
       
       {/* HEADER TOPBAR */}
       {"playing" !== view && (
-        <header className="sticky top-0 z-40 bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800 px-4 sm:px-6 py-4 flex items-center justify-between">
+        <header className={`sticky top-0 z-40 px-4 sm:px-6 py-4 flex items-center justify-between transition-colors duration-300 ${
+          "lobby" === view 
+            ? "bg-transparent border-b border-white/5" 
+            : "bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800"
+        }`}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-rose-600/10 border border-rose-500/20 rounded-xl text-rose-500">
+            <div className={`p-2 rounded-xl transition-all duration-300 border ${
+              "lobby" === view 
+                ? "bg-[#4437ac]/15 border-[#7ba2be]/25 text-[#7ba2be] shadow-[0_0_10px_rgba(123,162,190,0.1)]" 
+                : "bg-rose-600/10 border-rose-500/20 text-rose-500"
+            }`}>
               <Shield className="w-5 h-5" />
             </div>
             <div>
               <h1 className="text-sm font-extrabold tracking-tight text-white uppercase sm:text-base">
                 Shadow Hunters
               </h1>
-              <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider">
+              <p className={`text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${
+                "lobby" === view ? "text-[#7ba2be]" : "text-rose-500"
+              }`}>
                 Bản Sắc Việt Hóa 🇻🇳
               </p>
             </div>
@@ -1189,13 +1204,13 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsRulesOpen(true)}
-              className="px-3.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold rounded-lg text-neutral-300 hover:text-white flex items-center gap-1.5 transition-colors"
+              className="px-3.5 py-1.5 bg-neutral-800/80 hover:bg-neutral-700/90 text-xs font-semibold rounded-lg text-neutral-300 hover:text-white flex items-center gap-1.5 transition-colors border border-white/5"
             >
               <BookOpen className="w-3.5 h-3.5" />
               Luật Chơi
             </button>
 
-            {view !== "lobby" && (
+            {"lobby" !== view && (
               <button
                 onClick={handleLeaveGame}
                 className="px-3 py-1.5 bg-rose-950/30 hover:bg-rose-900/50 text-[11px] font-bold rounded-lg text-rose-400 hover:text-rose-300 flex items-center gap-1 transition-colors border border-rose-900/40 cursor-pointer"
@@ -1319,55 +1334,61 @@ export default function App() {
           <div className="flex flex-col items-stretch w-full flex-1 gap-6">
             
             {/* TOP BAR */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-neutral-900 pb-5 w-full">
+            <div className="flex items-center justify-between gap-4 border-b border-neutral-900 pb-4 w-full">
               {/* Left Logo Title */}
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-sm font-extrabold tracking-tight text-white uppercase sm:text-base">
+                <span className="text-xs font-extrabold tracking-tight text-white uppercase sm:text-base">
                   Shadow Hunters
                 </span>
-                <span className="text-[9px] text-rose-500 font-bold bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded">
+                <span className="hidden sm:inline text-[9px] text-rose-500 font-bold bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded">
                   Bản Sắc Việt Hóa 🇻🇳
                 </span>
               </div>
 
-              {/* Right: History & Settings circular buttons */}
-              <div className="flex items-center gap-3 shrink-0">
+              {/* Right: Rules, History & Settings links matching mockup */}
+              <div className="flex items-center gap-3 text-[11px] sm:text-xs font-bold text-neutral-300 shrink-0">
+                {/* Rules button */}
+                <button
+                  onClick={() => setIsRulesOpen(true)}
+                  className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 py-1"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-rose-500" />
+                  <span className="hidden xs:inline">Luật chơi</span>
+                </button>
+                <span className="text-neutral-850">|</span>
+
                 {/* History button */}
                 <button
                   onClick={() => setShowHistoryDialog(true)}
-                  title="Lịch sử trận đấu"
-                  className="w-11 h-11 rounded-full border border-neutral-850 bg-neutral-900 hover:bg-neutral-850 flex items-center justify-center text-neutral-300 hover:text-white transition-all cursor-pointer shadow-lg active:scale-95"
+                  className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 py-1"
                 >
-                  <History className="w-5 h-5" />
+                  <History className="w-3.5 h-3.5 text-rose-500" />
+                  <span className="hidden xs:inline">Lịch sử</span>
                 </button>
+                <span className="text-neutral-850">|</span>
 
                 {/* Settings button container */}
                 <div className="relative">
                   <button
-                    onClick={() => {
-                      const isHost = playerId === activeGame.players[0].id;
-                      if (isHost) {
-                        setShowSettingsMenu(!showSettingsMenu);
-                      }
-                    }}
-                    title="Cài đặt phòng chơi"
-                    className="w-11 h-11 rounded-full border border-neutral-850 bg-neutral-900 hover:bg-neutral-850 flex items-center justify-center text-neutral-300 hover:text-white transition-all cursor-pointer shadow-lg active:scale-95"
+                    onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                    className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 py-1"
                   >
-                    <Settings className="w-5 h-5" />
+                    <Settings className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Cài đặt</span>
                   </button>
                   {showSettingsMenu && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setShowSettingsMenu(false)} />
-                      <div className="absolute top-full right-0 mt-2 w-48 bg-neutral-950 border border-neutral-800 rounded-xl shadow-2xl p-2.5 z-50 animate-fadeIn text-left">
+                      <div className="absolute top-full right-0 mt-2 w-44 bg-neutral-950 border border-neutral-800 rounded-xl shadow-2xl p-2 z-50 animate-fadeIn text-left">
                         <button
                           onClick={() => {
                             setShowSettingsMenu(false);
                             handleLeaveGame();
                           }}
-                          className="w-full text-left py-2 px-3 hover:bg-rose-950/30 text-rose-400 rounded-lg text-xs font-bold transition-all border border-rose-900/30 flex items-center gap-1.5 cursor-pointer"
+                          className="w-full text-left py-2 px-3 hover:bg-rose-950/30 text-rose-450 rounded-lg text-xs font-bold transition-all border border-rose-900/30 flex items-center gap-1.5 cursor-pointer animate-fadeIn"
                         >
                           <LogOut className="w-3.5 h-3.5" />
-                          Hủy phòng chơi
+                          {playerId === activeGame.players[0]?.id ? "Hủy phòng chơi" : "Thoát phòng"}
                         </button>
                       </div>
                     </>
@@ -1376,11 +1397,117 @@ export default function App() {
               </div>
             </div>
 
+            {/* Mobile Player List (Horizontal scroll row) */}
+            <div className="lg:hidden w-full overflow-x-auto scrollbar-none py-1 mb-0">
+              <div className="flex gap-2 min-w-max px-1">
+                {activeGame.players.map((p) => {
+                  const isSelf = playerId === p.id;
+                  const isRevealed = isSelf || p.alignmentRevealed || p.isDead;
+                  const maxHp = p.character.hp;
+                  const lostHp = maxHp - p.currentHp;
+                  const isCurrentTurn = activeGame.players[activeGame.turnIndex]?.id === p.id && !p.isDead;
+                  
+                  return (
+                    <div 
+                      key={p.id}
+                      onClick={() => setSelectedPlayerForInfo(p)}
+                      className={`flex flex-col items-center text-center cursor-pointer transition-all duration-300 p-1 rounded-xl border ${
+                        isCurrentTurn 
+                          ? "bg-rose-950/15 border-rose-500/50 scale-105 shadow-[0_0_10px_rgba(244,63,94,0.15)]" 
+                          : "border-transparent hover:bg-neutral-900/40"
+                      }`}
+                    >
+                      {/* Avatar with damage badge */}
+                      <div className="relative">
+                        <div 
+                          className={`w-8 h-8 rounded-full border flex items-center justify-center font-black text-xs shadow ${
+                            p.isDead 
+                              ? "bg-neutral-800 border-neutral-700 text-neutral-500" 
+                              : "bg-neutral-900 text-white"
+                          }`}
+                          style={p.isDead ? {} : { borderColor: p.color }}
+                        >
+                          {p.isDead ? (
+                            <Skull className="w-3.5 h-3.5 text-neutral-500" />
+                          ) : p.isBot ? (
+                            <Bot className="w-3.5 h-3.5" style={{ color: p.color }} />
+                          ) : (
+                            <User className="w-3.5 h-3.5" style={{ color: p.color }} />
+                          )}
+                        </div>
+                        <div 
+                          className={`absolute -bottom-1 left-1/2 -translate-x-1/2 px-0.5 py-0 rounded text-[7px] font-extrabold border shadow-sm whitespace-nowrap leading-none ${
+                            p.isDead
+                              ? "bg-neutral-800 border-neutral-700 text-neutral-500"
+                              : isRevealed
+                                ? "bg-rose-950 border-rose-900 text-rose-400"
+                                : "bg-neutral-950 border-neutral-800 text-neutral-400"
+                          }`}
+                        >
+                          {isRevealed ? `${lostHp}/${maxHp}` : `${lostHp}`}
+                        </div>
+                      </div>
+                      <div className="mt-1.5 space-y-0 max-w-[55px]">
+                        <div className="text-[8px] font-extrabold text-white truncate">
+                          {p.name} {isSelf && <span className="text-[6.5px] text-rose-450 font-bold bg-rose-500/10 px-0.5 rounded">(Bạn)</span>}
+                        </div>
+                        <div className="text-[6.5px] text-neutral-450 font-bold truncate uppercase tracking-tight">
+                          {false === isRevealed
+                            ? "???"
+                            : Alignment.SHADOW === p.character.alignment 
+                              ? "Bóng Tối" 
+                              : Alignment.HUNTER === p.character.alignment 
+                                ? "Thợ Săn" 
+                                : "Trung Lập"}
+                        </div>
+                        {isRevealed && (
+                          <div className="text-[6.5px] text-neutral-550 font-medium truncate">
+                            {p.character.name}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Main view container */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full flex-1">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 lg:gap-6 items-stretch w-full flex-1">
               
+              {/* Latest Log Display (col-span-12) */}
+              {(() => {
+                const latestLog = 0 < activeGame.logs.length ? activeGame.logs[0] : null;
+                if (null === latestLog) return null;
+                const logTypeStyles = {
+                  reveal: "bg-amber-950/20 border-l border-amber-500 text-amber-200 hover:bg-amber-950/30 transition-colors",
+                  attack: "bg-rose-950/20 border-l border-rose-500 text-rose-200 hover:bg-rose-950/30 transition-colors",
+                  card: "bg-blue-950/20 border-l border-blue-500 text-blue-200 hover:bg-blue-950/30 transition-colors",
+                  action: "bg-emerald-950/20 border-l border-emerald-500 text-emerald-200 hover:bg-emerald-950/30 transition-colors",
+                };
+                const logIcons = {
+                  reveal: "📣",
+                  attack: "⚔️",
+                  card: "🃏",
+                  action: "📌",
+                  system: "🔔",
+                  info: "ℹ️"
+                };
+                return (
+                  <div className="col-span-full w-full">
+                    <div 
+                      onClick={() => setShowHistoryDialog(true)}
+                      className={`px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border text-[10px] sm:text-xs font-semibold flex items-center gap-2 shadow-sm cursor-pointer ${logTypeStyles[latestLog.type] || "bg-neutral-950/60 border-l border-neutral-800 text-neutral-300 hover:bg-neutral-900/60 transition-colors"}`}
+                    >
+                      <span className="shrink-0">{logIcons[latestLog.type] || "📄"}</span>
+                      <span className="truncate" title={latestLog.message}>{latestLog.message}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Left Column (3/12): Player list */}
-              <div className="lg:col-span-3 flex flex-col h-full">
+              <div className="hidden lg:flex lg:col-span-3 flex-col h-full">
                 <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 space-y-3 flex-1 flex flex-col h-full">
                   <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest pl-1 border-b border-neutral-850 pb-2">
                     Danh Sách Anh Hùng
@@ -1491,478 +1618,443 @@ export default function App() {
                   />
                 </div>
 
-                {/* Bottom Action Area (Context controls & Two circular buttons) */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-neutral-900 border border-neutral-800 p-5 rounded-2xl shrink-0">
-                  {/* Context controls (Target select, healing, etc.) */}
-                  <div className="flex-1 w-full flex items-center justify-start">
-                    {(() => {
-                      const currentTurnPlayer = activeGame.players[activeGame.turnIndex];
-                      const isMyTurn = playerId === currentTurnPlayer.id;
-                      
-                      if (isMyTurn && "game_over" !== activeGame.phase) {
-                        if ("attack" === activeGame.phase) {
-                          const hasHandgun = currentTurnPlayer.equipments.includes("s_handgun");
-                          const attackableTargets = activeGame.players.filter((p) => {
-                            if (playerId === p.id || p.isDead) return false;
-                            const inSame = areLocationsInSameArea(currentTurnPlayer.locationId, p.locationId);
-                            return hasHandgun ? !inSame : inSame;
-                          });
-                          
-                          return (
-                            <div className="bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left">
-                              <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block">
-                                ⚔️ Khai Chiến Tấn Công
-                              </span>
-                              {1 === activeGame.roundNumber ? (
-                                <div className="p-2.5 bg-amber-950/20 border border-amber-900/30 rounded-lg text-center">
-                                  <p className="text-[10px] text-amber-400 font-bold">🛡️ VÒNG CHƠI ĐẦU TIÊN: HÒA BÌNH</p>
-                                  <p className="text-[9px] text-neutral-400 mt-0.5">Không thể giao chiến trong vòng này.</p>
-                                </div>
-                              ) : 0 === attackableTargets.length ? (
-                                <p className="text-[10px] text-neutral-500 italic text-center py-1">
-                                  Không tìm thấy đối thủ cùng khu vực để tấn công.
-                                </p>
-                              ) : (
-                                <div className="space-y-2">
-                                  <select
-                                    value={activeAttackTargetId}
-                                    onChange={(e) => setActiveAttackTargetId(e.target.value)}
-                                    className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer"
-                                  >
-                                    <option value="">-- Chọn đối thủ cùng khu vực --</option>
-                                    {attackableTargets.map((p) => (
-                                      <option key={p.id} value={p.id}>
-                                        {p.name} {p.isBot ? "(Bot)" : ""} ({p.alignmentRevealed ? `Máu: ${p.currentHp} HP` : "Máu: ??"})
-                                      </option>
-                                    ))}
-                                  </select>
-                                  {currentTurnPlayer.character.name.startsWith("George") && currentTurnPlayer.alignmentRevealed && !currentTurnPlayer.hasUsedAbility && (
-                                    <label className="flex items-center gap-2 cursor-pointer py-1 text-xs text-amber-400 select-none">
-                                      <input
-                                        type="checkbox"
-                                        checked={activeGeorgeAbility}
-                                        onChange={(e) => setActiveGeorgeAbility(e.target.checked)}
-                                        className="rounded border-neutral-800 accent-amber-550"
-                                      />
-                                      💥 Phát Bắn Chính Nghĩa (+D4 sát thương)
-                                    </label>
-                                  )}
-                                  <button
-                                    onClick={() => {
-                                      if (activeAttackTargetId) {
-                                        handleAttackPlayer(activeAttackTargetId);
-                                        setActiveAttackTargetId("");
-                                      }
-                                    }}
-                                    disabled={!activeAttackTargetId}
-                                    className="w-full py-1.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-30 rounded-lg text-xs font-bold text-white transition-all shadow cursor-pointer"
-                                  >
-                                    Xác Nhận Tấn Công
-                                  </button>
-                                </div>
-                              )}
-                              
-                              {activeGame.lastAttackDice && (
-                                <div className="pt-2 border-t border-neutral-800/60 mt-2">
-                                  <div className="bg-neutral-900/60 rounded-lg p-2.5 flex items-center gap-3">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="w-6 h-6 rounded flex items-center justify-center bg-rose-950/30 border border-rose-500/30 text-rose-300 text-[10px] font-bold">D6</span>
-                                      <span className="text-sm font-bold text-white font-mono">{activeGame.lastAttackDice.d6}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="w-6 h-6 rounded flex items-center justify-center bg-amber-950/30 border border-amber-500/30 text-amber-300 text-[10px] font-bold">D4</span>
-                                      <span className="text-sm font-bold text-white font-mono">{activeGame.lastAttackDice.d4}</span>
-                                    </div>
-                                    <div className="w-px h-6 bg-neutral-800" />
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-[10px] text-neutral-400 font-semibold uppercase">Sát thương</span>
-                                      <span className={`text-sm font-bold font-mono ${activeGame.lastAttackDice.damage > 0 ? "text-rose-400" : "text-neutral-500"}`}>
-                                        {activeGame.lastAttackDice.damage > 0 ? `${activeGame.lastAttackDice.damage}` : "HỤT"}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        }
-                        
-                        if ("action" === activeGame.phase && "loc_anvil" === currentTurnPlayer.locationId) {
-                          const otherPlayersWithEquipments = activeGame.players.filter(
-                            p => p.id !== currentTurnPlayer.id && !p.isDead && p.equipments.length > 0
-                          );
-
-                          return (
-                            <div className="bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left">
-                              <span className="text-[10px] font-bold text-amber-400 uppercase block tracking-wider">
-                                🎒 Cướp Trang Bị (Bàn Thờ Cổ)
-                              </span>
-                              {0 === otherPlayersWithEquipments.length ? (
-                                <div className="space-y-2">
-                                  <p className="text-[11px] text-neutral-400">
-                                    Không có ai sở hữu trang bị để cướp.
-                                  </p>
-                                  <button
-                                    onClick={() => {
-                                      let nextState = { ...activeGame };
-                                      nextState.phase = "attack";
-                                      if ("solo" === gameMode) {
-                                        setActiveGame(nextState);
-                                      } else if (roomId) {
-                                        updateRoomState(roomId, nextState);
-                                      }
-                                    }}
-                                    className="w-full py-1.5 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-xs font-bold text-white transition-all cursor-pointer"
-                                  >
-                                    Bỏ Qua & Tiếp Tục
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="space-y-2">
-                                  <select
-                                    value={activeAltarTargetId}
-                                    onChange={(e) => {
-                                      setActiveAltarTargetId(e.target.value);
-                                      setActiveAltarCardId("");
-                                    }}
-                                    className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer"
-                                  >
-                                    <option value="">-- Chọn nạn nhân --</option>
-                                    {otherPlayersWithEquipments.map((p) => (
-                                      <option key={p.id} value={p.id}>
-                                        {p.name} ({p.equipments.length} trang bị)
-                                      </option>
-                                    ))}
-                                  </select>
-
-                                  {activeAltarTargetId && (
-                                    <select
-                                      value={activeAltarCardId}
-                                      onChange={(e) => setActiveAltarCardId(e.target.value)}
-                                      className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer animate-fadeIn"
-                                    >
-                                      <option value="">-- Chọn trang bị để cướp --</option>
-                                      {activeGame.players
-                                        .find(p => activeAltarTargetId === p.id)
-                                        ?.equipments.map((eqId) => {
-                                          const card = getCardById(eqId);
-                                          return card ? (
-                                            <option key={eqId} value={eqId}>
-                                              {card.name} ({CardType.LIGHT === card.type ? "Ánh Sáng" : "Bóng Tối"})
-                                            </option>
-                                          ) : null;
-                                        })}
-                                    </select>
-                                  )}
-
-                                  <button
-                                    onClick={() => {
-                                      if (activeAltarTargetId && activeAltarCardId) {
-                                        handleStealEquipment(activeAltarTargetId, activeAltarCardId);
-                                        setActiveAltarTargetId("");
-                                        setActiveAltarCardId("");
-                                      }
-                                    }}
-                                    disabled={!activeAltarTargetId || !activeAltarCardId}
-                                    className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-30 rounded-lg text-xs font-bold text-white transition-all shadow cursor-pointer"
-                                  >
-                                    Xác Nhận Cướp
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        }
-
-                        if ("action" === activeGame.phase && "loc_woods" === currentTurnPlayer.locationId) {
-                          return (
-                            <div className="bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left">
-                              <span className="text-[10px] font-bold text-purple-400 uppercase block tracking-wider">
-                                🌲 Ma Lực Rừng Rậm Kỳ Dị
-                              </span>
-                              <div className="space-y-2">
-                                <select
-                                  value={activeWoodsTargetId}
-                                  onChange={(e) => setActiveWoodsTargetId(e.target.value)}
-                                  className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer"
-                                >
-                                  <option value="">-- Chọn anh hùng tác dụng --</option>
-                                  {activeGame.players.filter(p => !p.isDead).map((p) => (
-                                    <option key={p.id} value={p.id}>
-                                      {playerId === p.id ? `Bản thân (${p.name})` : p.name} ({playerId === p.id || p.alignmentRevealed ? `Máu: ${p.currentHp} HP` : "Máu: ??"})
-                                    </option>
-                                  ))}
-                                </select>
-                                <div className="grid grid-cols-2 gap-1.5">
-                                  <button
-                                    onClick={() => setActiveWoodsAction("damage")}
-                                    className={`py-1 rounded text-[10px] font-bold transition-all border cursor-pointer ${
-                                      "damage" === activeWoodsAction 
-                                        ? "bg-rose-950/40 text-rose-400 border-rose-500/30" 
-                                        : "bg-neutral-900 border-neutral-800 text-neutral-500"
-                                    }`}
-                                  >
-                                    Gây 2 Sát Thương
-                                  </button>
-                                  <button
-                                    onClick={() => setActiveWoodsAction("heal")}
-                                    className={`py-1 rounded text-[10px] font-bold transition-all border cursor-pointer ${
-                                      "heal" === activeWoodsAction 
-                                        ? "bg-emerald-950/40 text-emerald-400 border-emerald-500/30" 
-                                        : "bg-neutral-900 border-neutral-800 text-neutral-500"
-                                    }`}
-                                  >
-                                    Hồi 1 Máu
-                                  </button>
-                                </div>
-                                <button
-                                  onClick={() => {
-                                    if (activeWoodsTargetId) {
-                                      handleUseWeirdWoods(activeWoodsTargetId, activeWoodsAction);
-                                      setActiveWoodsTargetId("");
-                                    }
-                                  }}
-                                  disabled={!activeWoodsTargetId}
-                                  className="w-full py-1.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-30 rounded-lg text-xs font-bold text-white transition-all shadow cursor-pointer"
-                                >
-                                  Kích Hoạt Ma Lực
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        }
-
-                        const isDavid = currentTurnPlayer.character.name.startsWith("David") && currentTurnPlayer.alignmentRevealed && !currentTurnPlayer.hasUsedAbility;
-                        const deadPlayersWithEquips = activeGame.players.filter(p => p.isDead && p.equipments.length > 0);
-                        
-                        if (isMyTurn && isDavid && deadPlayersWithEquips.length > 0 && "game_over" !== activeGame.phase) {
-                          return (
-                            <div className="bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left animate-fadeIn">
-                              <span className="text-[10px] font-bold text-amber-400 uppercase block tracking-wider">
-                                🪦 Kỹ năng: Đào Mộ Thánh Tích
-                              </span>
-                              <div className="space-y-2">
-                                <select
-                                  value={activeDavidTargetId}
-                                  onChange={(e) => {
-                                    setActiveDavidTargetId(e.target.value);
-                                    setActiveDavidCardId("");
-                                  }}
-                                  className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer"
-                                >
-                                  <option value="">-- Chọn thi thể người chết --</option>
-                                  {deadPlayersWithEquips.map((p) => (
-                                    <option key={p.id} value={p.id}>
-                                      {p.name} ({p.equipments.length} trang bị)
-                                    </option>
-                                  ))}
-                                </select>
-
-                                {activeDavidTargetId && (
-                                  <select
-                                    value={activeDavidCardId}
-                                    onChange={(e) => setActiveDavidCardId(e.target.value)}
-                                    className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer animate-fadeIn"
-                                  >
-                                    <option value="">-- Chọn thánh tích cướp về --</option>
-                                    {activeGame.players
-                                      .find(p => activeDavidTargetId === p.id)
-                                      ?.equipments.map((eqId) => {
-                                        const card = getCardById(eqId);
-                                        return card ? (
-                                          <option key={eqId} value={eqId}>
-                                            {card.name}
-                                          </option>
-                                        ) : null;
-                                      })}
-                                  </select>
-                                )}
-
-                                <button
-                                  onClick={() => {
-                                    if (activeDavidTargetId && activeDavidCardId) {
-                                      const next = activateCharacterAbility(activeGame, playerId, `${activeDavidTargetId}:${activeDavidCardId}`);
-                                      if (gameMode === "solo") {
-                                        setActiveGame(next);
-                                      } else if (roomId) {
-                                        updateRoomState(roomId, next);
-                                      }
-                                      setActiveDavidTargetId("");
-                                      setActiveDavidCardId("");
-                                    }
-                                  }}
-                                  disabled={!activeDavidTargetId || !activeDavidCardId}
-                                  className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-30 rounded-lg text-xs font-bold text-white transition-all shadow cursor-pointer"
-                                >
-                                  Xác Nhận Đào Mộ
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        }
-                      }
-                      
-                      // Waiting view
-                      return "game_over" === activeGame.phase ? (
-                        <span className="text-xs text-neutral-500 italic">Trận đấu đã khép lại.</span>
-                      ) : null;
-                    })()}
-                  </div>
-
-                  {/* Circular Button Wrapper */}
-                  <div className="flex items-center gap-4 shrink-0 justify-end w-full md:w-auto">
-                    {(() => {
-                      const currentTurnPlayer = activeGame.players[activeGame.turnIndex];
-                      const isMyTurn = playerId === currentTurnPlayer.id;
-                      const isGameOver = "game_over" === activeGame.phase;
-                      
-                      // Button 1: Reveal / Active Skill
-                      let isLeftButtonActive = false;
-                      let leftButtonLabel = "LỘ DIỆN NHÂN VẬT";
-                      let leftButtonAction: (() => void) | null = null;
-                      
-                      if (isMyTurn && !isGameOver) {
-                        if (!currentTurnPlayer.alignmentRevealed) {
-                          const isDaniel = currentTurnPlayer.character.name.startsWith("Daniel");
-                          isLeftButtonActive = !isDaniel;
-                          leftButtonLabel = isDaniel ? "DANIEL: KHÔNG THỂ TỰ LỘ DIỆN" : "LỘ DIỆN NHÂN VẬT";
-                          leftButtonAction = isDaniel ? null : handleRevealIdentity;
-                        } else if (
-                          (currentTurnPlayer.character.name.startsWith("Franklin") || 
-                           currentTurnPlayer.character.name.startsWith("Allie") || 
-                           currentTurnPlayer.character.name.startsWith("Agnes")) &&
-                          !currentTurnPlayer.hasUsedAbility
-                        ) {
-                          isLeftButtonActive = true;
-                          leftButtonLabel = "SỬ DỤNG KỸ NĂNG";
-                          leftButtonAction = handleRevealIdentity;
-                        } else {
-                          leftButtonLabel = "KỸ NĂNG BỊ ĐỘNG / ĐÃ DÙNG";
-                        }
-                      }
-                      
-                      // Button 2: Roll / End Turn
-                      let isRightButtonActive = false;
-                      let rightButtonLabel = "CHỜ LƯỢT CHƠI";
-                      let rightButtonAction: (() => void) | null = null;
-                      
-                      if (isMyTurn && !isGameOver) {
-                        isRightButtonActive = true;
-                        if ("roll" === activeGame.phase) {
-                          rightButtonLabel = "ĐỔ XÚC XẮC DI CHUYỂN";
-                          rightButtonAction = handleRollMove;
-                        } else if ("action" === activeGame.phase) {
-                          rightButtonLabel = "BỎ QUA HÀNH ĐỘNG";
-                          rightButtonAction = handleEndTurn;
-                        } else if ("attack" === activeGame.phase) {
-                          const hasHandgun = currentTurnPlayer.equipments.includes("s_handgun");
-                          const targets = activeGame.players.filter((p) => {
-                            if (playerId === p.id || p.isDead) return false;
-                            const inSame = areLocationsInSameArea(currentTurnPlayer.locationId, p.locationId);
-                            return hasHandgun ? !inSame : inSame;
-                          });
-                          
-                          if (currentTurnPlayer.equipments.includes("s_masamune") && targets.length > 0) {
-                            rightButtonLabel = "YÊU CẦU TẤN CÔNG (MASAMUNE)";
-                            isRightButtonActive = false;
-                          } else {
-                            rightButtonLabel = "KẾT THÚC LƯỢT";
-                            rightButtonAction = handleEndTurn;
-                          }
-                        }
-                      }
+                {/* 1. Context Controls (Tấn công, cướp trang bị, đào mộ, dùng rừng...) */}
+                {(() => {
+                  const currentTurnPlayer = activeGame.players[activeGame.turnIndex];
+                  const isMyTurn = playerId === currentTurnPlayer.id;
+                  
+                  if (isMyTurn && "game_over" !== activeGame.phase) {
+                    if ("attack" === activeGame.phase) {
+                      const hasHandgun = currentTurnPlayer.equipments.includes("s_handgun");
+                      const attackableTargets = activeGame.players.filter((p) => {
+                        if (playerId === p.id || p.isDead) return false;
+                        const inSame = areLocationsInSameArea(currentTurnPlayer.locationId, p.locationId);
+                        return hasHandgun ? !inSame : inSame;
+                      });
                       
                       return (
-                        <>
-                          {/* Reveal / Skill Circle Button */}
-                          <button
-                            onClick={() => leftButtonAction?.()}
-                            disabled={!isLeftButtonActive}
-                            className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 text-center flex flex-col items-center justify-center p-3 transition-all duration-300 shadow-xl ${
-                              isLeftButtonActive
-                                ? "bg-purple-950/15 border-purple-500 text-purple-300 hover:bg-purple-900/35 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(168,85,247,0.25)] cursor-pointer ring-1 ring-purple-500/25"
-                                : "bg-neutral-900/30 border-neutral-850 text-neutral-600 cursor-not-allowed opacity-50"
-                            }`}
-                          >
-                            {leftButtonLabel === "SỬ DỤNG KỸ NĂNG" ? (
-                              <Sparkles className="w-7 h-7 mb-1.5 text-purple-400" />
-                            ) : (
-                              <Eye className={`w-7 h-7 mb-1.5 ${isLeftButtonActive ? "text-purple-400" : "text-neutral-600"}`} />
-                            )}
-                            <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider leading-tight max-w-[85px] sm:max-w-[100px]">{leftButtonLabel}</span>
-                          </button>
-
-                          {/* Roll / End Turn Circle Button */}
-                          <button
-                            onClick={() => rightButtonAction?.()}
-                            disabled={!isRightButtonActive}
-                            className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 text-center flex flex-col items-center justify-center p-3 transition-all duration-300 shadow-xl ${
-                              isRightButtonActive
-                                ? "bg-rose-950/15 border-rose-500 text-rose-300 hover:bg-rose-900/35 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(244,63,94,0.25)] cursor-pointer ring-1 ring-rose-500/25"
-                                : "bg-neutral-900/30 border-neutral-850 text-neutral-600 cursor-not-allowed opacity-50"
-                            }`}
-                          >
-                            {isRightButtonActive ? (
-                              "roll" === activeGame.phase ? (
-                                <Dices className="w-7 h-7 mb-1.5 text-rose-450" />
-                              ) : (
-                                <ArrowRight className="w-7 h-7 mb-1.5 text-rose-400" />
-                              )
-                            ) : (
-                              <Dices className="w-7 h-7 mb-1.5 text-neutral-600" />
-                            )}
-                            <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider leading-tight max-w-[85px] sm:max-w-[100px]">{rightButtonLabel}</span>
-                          </button>
-                        </>
+                        <div className="mb-4 bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left">
+                          <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block">
+                            ⚔️ Khai Chiến Tấn Công
+                          </span>
+                          {1 === activeGame.roundNumber ? (
+                            <div className="p-2.5 bg-amber-950/20 border border-amber-900/30 rounded-lg text-center">
+                              <p className="text-[10px] text-amber-400 font-bold">🛡️ VÒNG CHƠI ĐẦU TIÊN: HÒA BÌNH</p>
+                              <p className="text-[9px] text-neutral-400 mt-0.5">Không thể giao chiến trong vòng này.</p>
+                            </div>
+                          ) : 0 === attackableTargets.length ? (
+                            <p className="text-[10px] text-neutral-500 italic text-center py-1">
+                              Không tìm thấy đối thủ cùng khu vực để tấn công.
+                            </p>
+                          ) : (
+                            <div className="space-y-2">
+                              <select
+                                value={activeAttackTargetId}
+                                onChange={(e) => setActiveAttackTargetId(e.target.value)}
+                                className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer"
+                              >
+                                <option value="">-- Chọn đối thủ cùng khu vực --</option>
+                                {attackableTargets.map((p) => (
+                                  <option key={p.id} value={p.id}>
+                                    {p.name} {p.isBot ? "(Bot)" : ""} ({p.alignmentRevealed ? `Máu: ${p.currentHp} HP` : "Máu: ??"})
+                                  </option>
+                                ))}
+                              </select>
+                              {currentTurnPlayer.character.name.startsWith("George") && currentTurnPlayer.alignmentRevealed && !currentTurnPlayer.hasUsedAbility && (
+                                <label className="flex items-center gap-2 cursor-pointer py-1 text-xs text-amber-400 select-none">
+                                  <input
+                                    type="checkbox"
+                                    checked={activeGeorgeAbility}
+                                    onChange={(e) => setActiveGeorgeAbility(e.target.checked)}
+                                    className="rounded border-neutral-800 accent-amber-550"
+                                  />
+                                  💥 Phát Bắn Chính Nghĩa (+D4 sát thương)
+                                </label>
+                              )}
+                              <button
+                                onClick={() => {
+                                  if (activeAttackTargetId) {
+                                    handleAttackPlayer(activeAttackTargetId);
+                                    setActiveAttackTargetId("");
+                                  }
+                                }}
+                                disabled={!activeAttackTargetId}
+                                className="w-full py-1.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-30 rounded-lg text-xs font-bold text-white transition-all shadow cursor-pointer"
+                              >
+                                Xác Nhận Tấn Công
+                              </button>
+                            </div>
+                          )}
+                          
+                          {activeGame.lastAttackDice && (
+                            <div className="pt-2 border-t border-neutral-800/60 mt-2">
+                              <div className="bg-neutral-900/60 rounded-lg p-2.5 flex items-center gap-3">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="w-6 h-6 rounded flex items-center justify-center bg-rose-950/30 border border-rose-500/30 text-rose-300 text-[10px] font-bold">D6</span>
+                                  <span className="text-sm font-bold text-white font-mono">{activeGame.lastAttackDice.d6}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="w-6 h-6 rounded flex items-center justify-center bg-amber-950/30 border border-amber-500/30 text-amber-300 text-[10px] font-bold">D4</span>
+                                  <span className="text-sm font-bold text-white font-mono">{activeGame.lastAttackDice.d4}</span>
+                                </div>
+                                <div className="w-px h-6 bg-neutral-800" />
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] text-neutral-400 font-semibold uppercase">Sát thương</span>
+                                  <span className={`text-sm font-bold font-mono ${activeGame.lastAttackDice.damage > 0 ? "text-rose-400" : "text-neutral-500"}`}>
+                                    {activeGame.lastAttackDice.damage > 0 ? `${activeGame.lastAttackDice.damage}` : "HỤT"}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       );
-                    })()}
-                  </div>
-                </div>
+                    }
+                    
+                    if ("action" === activeGame.phase && "loc_anvil" === currentTurnPlayer.locationId) {
+                      const otherPlayersWithEquipments = activeGame.players.filter(
+                        p => p.id !== currentTurnPlayer.id && !p.isDead && p.equipments.length > 0
+                      );
 
-                {/* Persistent Status + Latest Log */}
-                {(() => {
-                  const latestLog = activeGame.logs.length > 0 ? activeGame.logs[0] : null;
-                  const logTypeStyles: Record<string, string> = {
-                    reveal: "bg-amber-950/20 border-l-2 border-amber-500/80 text-amber-200",
-                    attack: "bg-rose-950/20 border-l-2 border-rose-500/80 text-rose-200",
-                    card: "bg-blue-950/20 border-l-2 border-blue-500/80 text-blue-200",
-                    action: "bg-emerald-950/20 border-l-2 border-emerald-500/80 text-emerald-200",
-                  };
-                  const logIcons: Record<string, string> = {
-                    reveal: "📣",
-                    attack: "⚔️",
-                    card: "🃏",
-                    action: "📌",
-                    system: "🔔",
-                    info: "ℹ️"
-                  };
-                  return (
-                    <div className="bg-neutral-900 border border-neutral-800 p-3 rounded-xl flex items-center gap-3">
-                      <div className="shrink-0">
-                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest block font-bold mb-0.5">
-                          Trạng thái
-                        </span>
-                        <span className="text-xs text-neutral-400 italic">
-                          {"game_over" === activeGame.phase
-                            ? "Trận đấu đã khép lại."
-                            : `Đang đợi ${activeGame.players[activeGame.turnIndex].name}...`}
-                        </span>
-                      </div>
-                      {latestLog && (
-                        <>
-                          <div className="w-px h-8 bg-neutral-800 shrink-0" />
-                          <div className={`flex-1 min-w-0 px-2 py-1 rounded text-[10px] ${logTypeStyles[latestLog.type] || "bg-neutral-950/60 border-l-2 border-neutral-800 text-neutral-300"}`}>
-                            <span className="mr-1">{logIcons[latestLog.type] || "📄"}</span>
-                            <span className="truncate block" title={latestLog.message}>
-                              {latestLog.message}
-                            </span>
+                      return (
+                        <div className="mb-4 bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left">
+                          <span className="text-[10px] font-bold text-amber-400 uppercase block tracking-wider">
+                            🎒 Cướp Trang Bị (Bàn Thờ Cổ)
+                          </span>
+                          {0 === otherPlayersWithEquipments.length ? (
+                            <div className="space-y-2">
+                              <p className="text-[11px] text-neutral-400">
+                                Không có ai sở hữu trang bị để cướp.
+                              </p>
+                              <button
+                                onClick={() => {
+                                  let nextState = { ...activeGame };
+                                  nextState.phase = "attack";
+                                  if ("solo" === gameMode) {
+                                    setActiveGame(nextState);
+                                  } else if (roomId) {
+                                    updateRoomState(roomId, nextState);
+                                  }
+                                }}
+                                className="w-full py-1.5 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-xs font-bold text-white transition-all cursor-pointer"
+                              >
+                                Bỏ Qua & Tiếp Tục
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <select
+                                value={activeAltarTargetId}
+                                onChange={(e) => {
+                                  setActiveAltarTargetId(e.target.value);
+                                  setActiveAltarCardId("");
+                                }}
+                                className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer"
+                              >
+                                <option value="">-- Chọn nạn nhân --</option>
+                                {otherPlayersWithEquipments.map((p) => (
+                                  <option key={p.id} value={p.id}>
+                                    {p.name} ({p.equipments.length} trang bị)
+                                  </option>
+                                ))}
+                              </select>
+
+                              {activeAltarTargetId && (
+                                <select
+                                  value={activeAltarCardId}
+                                  onChange={(e) => setActiveAltarCardId(e.target.value)}
+                                  className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer animate-fadeIn"
+                                >
+                                  <option value="">-- Chọn trang bị để cướp --</option>
+                                  {activeGame.players
+                                    .find(p => activeAltarTargetId === p.id)
+                                    ?.equipments.map((eqId) => {
+                                      const card = getCardById(eqId);
+                                      return card ? (
+                                        <option key={eqId} value={eqId}>
+                                          {card.name} ({CardType.LIGHT === card.type ? "Ánh Sáng" : "Bóng Tối"})
+                                        </option>
+                                      ) : null;
+                                    })}
+                                </select>
+                              )}
+
+                              <button
+                                onClick={() => {
+                                  if (activeAltarTargetId && activeAltarCardId) {
+                                    handleStealEquipment(activeAltarTargetId, activeAltarCardId);
+                                    setActiveAltarTargetId("");
+                                    setActiveAltarCardId("");
+                                  }
+                                }}
+                                disabled={!activeAltarTargetId || !activeAltarCardId}
+                                className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-30 rounded-lg text-xs font-bold text-white transition-all shadow cursor-pointer"
+                              >
+                                Xác Nhận Cướp
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    if ("action" === activeGame.phase && "loc_woods" === currentTurnPlayer.locationId) {
+                      return (
+                        <div className="mb-4 bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left">
+                          <span className="text-[10px] font-bold text-purple-400 uppercase block tracking-wider">
+                            🌲 Ma Lực Rừng Rậm Kỳ Dị
+                          </span>
+                          <div className="space-y-2">
+                            <select
+                              value={activeWoodsTargetId}
+                              onChange={(e) => setActiveWoodsTargetId(e.target.value)}
+                              className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer"
+                            >
+                              <option value="">-- Chọn anh hùng tác dụng --</option>
+                              {activeGame.players.filter(p => !p.isDead).map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {playerId === p.id ? `Bản thân (${p.name})` : p.name} ({playerId === p.id || p.alignmentRevealed ? `Máu: ${p.currentHp} HP` : "Máu: ??"})
+                                </option>
+                              ))}
+                            </select>
+                            <div className="grid grid-cols-2 gap-1.5">
+                              <button
+                                onClick={() => setActiveWoodsAction("damage")}
+                                className={`py-1 rounded text-[10px] font-bold transition-all border cursor-pointer ${
+                                  "damage" === activeWoodsAction 
+                                    ? "bg-rose-950/40 text-rose-400 border-rose-500/30" 
+                                    : "bg-neutral-900 border-neutral-800 text-neutral-500"
+                                }`}
+                              >
+                                Gây 2 Sát Thương
+                              </button>
+                              <button
+                                onClick={() => setActiveWoodsAction("heal")}
+                                className={`py-1 rounded text-[10px] font-bold transition-all border cursor-pointer ${
+                                  "heal" === activeWoodsAction 
+                                    ? "bg-emerald-950/40 text-emerald-400 border-emerald-500/30" 
+                                    : "bg-neutral-900 border-neutral-800 text-neutral-500"
+                                }`}
+                              >
+                                Hồi 1 Máu
+                              </button>
+                            </div>
+                            <button
+                              onClick={() => {
+                                if (activeWoodsTargetId) {
+                                  handleUseWeirdWoods(activeWoodsTargetId, activeWoodsAction);
+                                  setActiveWoodsTargetId("");
+                                }
+                              }}
+                              disabled={!activeWoodsTargetId}
+                              className="w-full py-1.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-30 rounded-lg text-xs font-bold text-white transition-all shadow cursor-pointer"
+                            >
+                              Kích Hoạt Ma Lực
+                            </button>
                           </div>
-                        </>
-                      )}
+                        </div>
+                      );
+                    }
+
+                    const isDavid = currentTurnPlayer.character.name.startsWith("David") && currentTurnPlayer.alignmentRevealed && !currentTurnPlayer.hasUsedAbility;
+                    const deadPlayersWithEquips = activeGame.players.filter(p => p.isDead && p.equipments.length > 0);
+                    
+                    if (isDavid && deadPlayersWithEquips.length > 0) {
+                      return (
+                        <div className="mb-4 bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left animate-fadeIn">
+                          <span className="text-[10px] font-bold text-amber-400 uppercase block tracking-wider">
+                            🪦 Kỹ năng: Đào Mộ Thánh Tích
+                          </span>
+                          <div className="space-y-2">
+                            <select
+                              value={activeDavidTargetId}
+                              onChange={(e) => {
+                                  setActiveDavidTargetId(e.target.value);
+                                  setActiveDavidCardId("");
+                              }}
+                              className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer"
+                            >
+                              <option value="">-- Chọn thi thể người chết --</option>
+                              {deadPlayersWithEquips.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.name} ({p.equipments.length} trang bị)
+                                </option>
+                              ))}
+                            </select>
+
+                            {activeDavidTargetId && (
+                              <select
+                                value={activeDavidCardId}
+                                onChange={(e) => setActiveDavidCardId(e.target.value)}
+                                className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer animate-fadeIn"
+                              >
+                                <option value="">-- Chọn thánh tích cướp về --</option>
+                                {activeGame.players
+                                  .find(p => activeDavidTargetId === p.id)
+                                  ?.equipments.map((eqId) => {
+                                    const card = getCardById(eqId);
+                                    return card ? (
+                                      <option key={eqId} value={eqId}>
+                                        {card.name}
+                                      </option>
+                                    ) : null;
+                                  })}
+                              </select>
+                            )}
+
+                            <button
+                              onClick={() => {
+                                if (activeDavidTargetId && activeDavidCardId) {
+                                  const next = activateCharacterAbility(activeGame, playerId, `${activeDavidTargetId}:${activeDavidCardId}`);
+                                  if (gameMode === "solo") {
+                                    setActiveGame(next);
+                                  } else if (roomId) {
+                                    updateRoomState(roomId, next);
+                                  }
+                                  setActiveDavidTargetId("");
+                                  setActiveDavidCardId("");
+                                }
+                              }}
+                              disabled={!activeDavidTargetId || !activeDavidCardId}
+                              className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-30 rounded-lg text-xs font-bold text-white transition-all shadow cursor-pointer"
+                            >
+                              Xác Nhận Đào Mộ
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+                  }
+                  return null;
+                })()}
+
+                {/* 2. Unified Responsive Control Panel (Trạng thái, Logs và Nút Tròn) */}
+                {(() => {
+                  const currentTurnPlayer = activeGame.players[activeGame.turnIndex];
+                  const isMyTurn = playerId === currentTurnPlayer.id;
+                  const isGameOver = "game_over" === activeGame.phase;
+                  
+                  // Button 1: Reveal / Active Skill
+                  let isLeftButtonActive = false;
+                  let leftButtonLabel = "LỘ DIỆN";
+                  let leftButtonAction = null;
+                  
+                  if (isMyTurn && !isGameOver) {
+                    if (!currentTurnPlayer.alignmentRevealed) {
+                      const isDaniel = currentTurnPlayer.character.name.startsWith("Daniel");
+                      isLeftButtonActive = !isDaniel;
+                      leftButtonLabel = isDaniel ? "DANIEL: LỖI" : "LỘ DIỆN";
+                      leftButtonAction = isDaniel ? null : handleRevealIdentity;
+                    } else if (
+                      (currentTurnPlayer.character.name.startsWith("Franklin") || 
+                       currentTurnPlayer.character.name.startsWith("Allie") || 
+                       currentTurnPlayer.character.name.startsWith("Agnes")) &&
+                      !currentTurnPlayer.hasUsedAbility
+                    ) {
+                      isLeftButtonActive = true;
+                      leftButtonLabel = "KỸ NĂNG";
+                      leftButtonAction = handleRevealIdentity;
+                    } else {
+                      leftButtonLabel = "ĐÃ DÙNG";
+                    }
+                  }
+                  
+                  // Button 2: Roll / End Turn
+                  let isRightButtonActive = false;
+                  let rightButtonLabel = "CHỜ LƯỢT";
+                  let rightButtonAction = null;
+                  
+                  if (isMyTurn && !isGameOver) {
+                    isRightButtonActive = true;
+                    if ("roll" === activeGame.phase) {
+                      rightButtonLabel = "ĐỔ XÚC XẮC";
+                      rightButtonAction = handleRollMove;
+                    } else if ("action" === activeGame.phase) {
+                      rightButtonLabel = "BỎ QUA";
+                      rightButtonAction = handleEndTurn;
+                    } else if ("attack" === activeGame.phase) {
+                      const hasHandgun = currentTurnPlayer.equipments.includes("s_handgun");
+                      const targets = activeGame.players.filter((p) => {
+                        if (playerId === p.id || p.isDead) return false;
+                        const inSame = areLocationsInSameArea(currentTurnPlayer.locationId, p.locationId);
+                        return hasHandgun ? !inSame : inSame;
+                      });
+                      
+                      if (currentTurnPlayer.equipments.includes("s_masamune") && targets.length > 0) {
+                        rightButtonLabel = "TẤN CÔNG";
+                        isRightButtonActive = false;
+                      } else {
+                        rightButtonLabel = "HẾT LƯỢT";
+                        rightButtonAction = handleEndTurn;
+                      }
+                    }
+                  }
+
+                  return (
+                    <div className="grid grid-cols-12 items-center gap-3 sm:gap-4 bg-neutral-900 border border-neutral-800 p-3 sm:p-5 rounded-2xl shrink-0">
+                      
+                      {/* Left: Status (Spans 7/12 columns on mobile, 8/12 on tablet+) */}
+                      <div className="col-span-7 sm:col-span-8 flex flex-col text-left justify-center min-w-0">
+                        <div>
+                          <span className="text-[8px] sm:text-[10px] text-neutral-500 uppercase tracking-widest block font-bold mb-0.5">
+                            Trạng thái
+                          </span>
+                          <span className="text-[10px] sm:text-xs text-neutral-300 font-extrabold truncate block">
+                            {isGameOver
+                              ? "Trận đấu đã khép lại."
+                              : `Đang đợi ${activeGame.players[activeGame.turnIndex].name}...`}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right: Circular Action Buttons (Spans 5/12 columns on mobile, 4/12 on tablet+) */}
+                      <div className="col-span-5 sm:col-span-4 flex items-center justify-end gap-1.5 sm:gap-3 shrink-0">
+                        {/* Reveal / Skill Button */}
+                        <button
+                          onClick={() => leftButtonAction?.()}
+                          disabled={!isLeftButtonActive}
+                          className={`w-16 h-16 xs:w-18 xs:h-18 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full border-2 text-center flex flex-col items-center justify-center p-1 sm:p-2 transition-all duration-300 shadow-lg ${
+                            isLeftButtonActive
+                              ? "bg-purple-950/15 border-purple-500 text-purple-300 hover:bg-purple-900/35 hover:scale-105 active:scale-95 shadow-[0_0_10px_rgba(168,85,247,0.2)] cursor-pointer ring-1 ring-purple-500/20"
+                              : "bg-neutral-900/30 border-neutral-850 text-neutral-600 cursor-not-allowed opacity-50"
+                          }`}
+                        >
+                          {leftButtonLabel === "KỸ NĂNG" ? (
+                            <Sparkles className="w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 text-purple-400" />
+                          ) : (
+                            <Eye className={`w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 ${isLeftButtonActive ? "text-purple-400" : "text-neutral-600"}`} />
+                          )}
+                          <span className="text-[6px] xs:text-[7px] sm:text-[8px] md:text-[9px] font-bold uppercase tracking-wider leading-tight max-w-[45px] sm:max-w-[75px] truncate">{leftButtonLabel}</span>
+                        </button>
+
+                        {/* Roll / End Turn Button */}
+                        <button
+                          onClick={() => rightButtonAction?.()}
+                          disabled={!isRightButtonActive}
+                          className={`w-16 h-16 xs:w-18 xs:h-18 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full border-2 text-center flex flex-col items-center justify-center p-1 sm:p-2 transition-all duration-300 shadow-lg ${
+                            isRightButtonActive
+                              ? "bg-rose-950/15 border-rose-500 text-rose-300 hover:bg-rose-900/35 hover:scale-105 active:scale-95 shadow-[0_0_10px_rgba(244,63,94,0.2)] cursor-pointer ring-1 ring-rose-500/20"
+                              : "bg-neutral-900/30 border-neutral-850 text-neutral-600 cursor-not-allowed opacity-50"
+                          }`}
+                        >
+                          {isRightButtonActive ? (
+                            "roll" === activeGame.phase ? (
+                              <Dices className="w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 text-rose-450" />
+                            ) : (
+                              <ArrowRight className="w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 text-rose-400" />
+                            )
+                          ) : (
+                            <Dices className="w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 text-neutral-600" />
+                          )}
+                          <span className="text-[6px] xs:text-[7px] sm:text-[8px] md:text-[9px] font-bold uppercase tracking-wider leading-tight max-w-[45px] sm:max-w-[75px] truncate">{rightButtonLabel}</span>
+                        </button>
+                      </div>
+
                     </div>
                   );
                 })()}
               </div>
+
 
             </div>
           </div>
@@ -1994,15 +2086,13 @@ export default function App() {
                 <h3 className="text-base sm:text-lg font-bold text-white tracking-tight pt-1">
                   {showGateSelection && !selectedGateDeck 
                     ? "Rút Một Thẻ Bài Tùy Chọn" 
-                    : `Đã Rút Được Thẻ: ${activeDrawnCard?.name}`}
+                    : ""}
                 </h3>
-                <p className="text-xs text-neutral-400">
-                  {showGateSelection && !selectedGateDeck 
-                    ? "Bạn được phép rút một lá bài bất kỳ từ 1 trong 3 chồng bài thần thoại."
-                    : activeDrawnCard?.isEquipment 
-                      ? "🛡️ Thẻ Trang Bị Hộ Thân (Hiệu ứng vĩnh viễn)" 
-                      : "⚡ Thẻ Vật Phẩm Một Lần (Hiệu ứng tức thời)"}
-                </p>
+                {showGateSelection && !selectedGateDeck && (
+                  <p className="text-xs text-neutral-400">
+                    Bạn được phép rút một lá bài bất kỳ từ 1 trong 3 chồng bài thần thoại.
+                  </p>
+                )}
               </div>
 
               {/* NỘI DUNG 1: CHƯA CHỌN CỌC BÀI Ở CỔNG BÓNG TỐI */}
@@ -2055,36 +2145,45 @@ export default function App() {
               {/* NỘI DUNG 2: ĐÃ CÓ THẺ BÀI RÚT ĐƯỢC (TỰ ĐỘNG HOẶC SAU KHI CHỌN CỔNG BÓNG TỐI) */}
               {activeDrawnCard && (
                 <div className="space-y-4 animate-scaleUp">
-                  {/* Card Frame */}
-                  <div className={`p-4 rounded-2xl border bg-neutral-900/40 space-y-3 ${
-                    activeDrawnCard.type === CardType.HERMIT
-                      ? "border-emerald-950"
-                      : activeDrawnCard.type === CardType.LIGHT
-                        ? "border-blue-950"
-                        : "border-orange-950"
+                  {/* Giao diện thẻ tối giản */}
+                  <div className={`p-5 rounded-2xl border bg-neutral-900/60 space-y-3.5 text-center relative ${
+                    CardType.HERMIT === activeDrawnCard.type
+                      ? "border-emerald-900/50"
+                      : CardType.LIGHT === activeDrawnCard.type
+                        ? "border-blue-900/50"
+                        : "border-orange-900/50"
                   }`}>
-                    <div className="text-center py-2 space-y-2">
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${
-                        activeDrawnCard.type === CardType.HERMIT
-                          ? "bg-emerald-950/40 text-emerald-400 border-emerald-900/30"
-                          : activeDrawnCard.type === CardType.LIGHT
-                            ? "bg-blue-950/40 text-blue-400 border-blue-900/30"
-                            : "bg-orange-950/40 text-orange-400 border-orange-900/30"
+                    {/* Tên thẻ */}
+                    <h4 className="text-white font-extrabold text-base tracking-tight leading-none">
+                      {activeDrawnCard.name}
+                    </h4>
+
+                    {/* Loại thẻ */}
+                    <div className="flex justify-center gap-1.5 flex-wrap">
+                      <span className={`text-[8px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
+                        CardType.HERMIT === activeDrawnCard.type
+                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                          : CardType.LIGHT === activeDrawnCard.type
+                            ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                            : "bg-orange-500/10 text-orange-400 border-orange-500/20"
                       }`}>
-                        {activeDrawnCard.type === CardType.HERMIT ? "Bộ Bài Ẩn Sĩ" : activeDrawnCard.type === CardType.LIGHT ? "Bộ Bài Ánh Sáng" : "Bộ Bài Bóng Tối"}
+                        {CardType.HERMIT === activeDrawnCard.type ? "Thẻ Ẩn Sĩ" : CardType.LIGHT === activeDrawnCard.type ? "Thẻ Ánh Sáng" : "Thẻ Bóng Tối"}
                       </span>
-                      <h4 className="text-white font-extrabold text-base tracking-tight pt-1">{activeDrawnCard.name}</h4>
-                      <p className="text-[11px] text-neutral-400 leading-relaxed font-medium">
-                        {activeDrawnCard.description}
-                      </p>
+                      <span className="text-[8px] font-bold px-2 py-0.5 rounded border border-neutral-800 bg-neutral-950 text-neutral-400 uppercase tracking-wider">
+                        {activeDrawnCard.isEquipment ? "🎒 Trang bị vĩnh viễn" : "⚡ Vật phẩm dùng 1 lần"}
+                      </span>
                     </div>
 
-                    {/* Hiệu ứng chi tiết */}
-                    <div className="bg-neutral-950/60 p-3 rounded-xl border border-neutral-900 space-y-1">
-                      <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider block">Hiệu ứng thẻ bài:</span>
-                      <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                        {activeDrawnCard.effectText}
+                    {/* Tác dụng thẻ */}
+                    <div className="space-y-2 text-center text-neutral-300">
+                      <p className="text-xs leading-relaxed font-semibold">
+                        {activeDrawnCard.description}
                       </p>
+                      {activeDrawnCard.effectText && activeDrawnCard.description !== activeDrawnCard.effectText && (
+                        <p className="text-[10px] text-amber-400/90 font-medium italic border-t border-neutral-850/50 pt-2 leading-relaxed">
+                          💡 {activeDrawnCard.effectText}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -2113,7 +2212,7 @@ export default function App() {
                             })}
                         </select>
                       </div>
-                    ) : activeDrawnCard.id === "l5" || activeDrawnCard.id === "s_spider" || activeDrawnCard.id === "s_doll" || activeDrawnCard.id.startsWith("s_bat") ? (
+                    ) : "l_firstaid" === activeDrawnCard.id || "l_blessing" === activeDrawnCard.id || "l_disenchant" === activeDrawnCard.id || "s_spider" === activeDrawnCard.id || "s_doll" === activeDrawnCard.id || activeDrawnCard.id.startsWith("s_bat") ? (
                       <div className="space-y-2">
                         <label className="block text-[11px] font-semibold text-neutral-400">
                           Chọn 1 đối tượng để kích hoạt hiệu ứng:
@@ -2124,9 +2223,9 @@ export default function App() {
                           className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-rose-500"
                         >
                           <option value="">-- Chọn đối tượng --</option>
-                          {/* Có thể chọn chính mình nếu là bài hồi phục l5 */}
-                          {activeDrawnCard.id === "l5" && (
-                            <option value={playerId}>Bản thân ({activeGame.players.find(p => p.id === playerId)?.name})</option>
+                          {/* Có thể chọn chính mình nếu là bài hồi phục l_firstaid */}
+                          {"l_firstaid" === activeDrawnCard.id && (
+                            <option value={playerId}>Bản thân ({activeGame.players.find(p => playerId === p.id)?.name})</option>
                           )}
                           {activeGame.players
                             .filter((p) => p.id !== playerId && !p.isDead)
@@ -2294,9 +2393,9 @@ export default function App() {
                           setSelectedEquipId("");
                         }}
                         disabled={
-                          (activeDrawnCard.type === CardType.HERMIT && !selectedTargetId) ||
-                          ((activeDrawnCard.id === "l5" || activeDrawnCard.id === "s_spider" || activeDrawnCard.id === "s_doll" || activeDrawnCard.id.startsWith("s_bat")) && !selectedTargetId) ||
-                          (activeDrawnCard.id === "s_banana" && (!selectedTargetId || (activeGame.players.find(p => p.id === playerId)?.equipments.length || 0) > 0 && !selectedEquipId)) ||
+                          (CardType.HERMIT === activeDrawnCard.type && !selectedTargetId) ||
+                          (("l_firstaid" === activeDrawnCard.id || "l_blessing" === activeDrawnCard.id || "l_disenchant" === activeDrawnCard.id || "s_spider" === activeDrawnCard.id || "s_doll" === activeDrawnCard.id || activeDrawnCard.id.startsWith("s_bat")) && !selectedTargetId) ||
+                          ("s_banana" === activeDrawnCard.id && (!selectedTargetId || (activeGame.players.find(p => playerId === p.id)?.equipments.length || 0) > 0 && !selectedEquipId)) ||
                           (activeDrawnCard.id.startsWith("s_goblin") && (!selectedTargetId.split(":")[0] || !selectedEquipId))
                         }
                         className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-30 rounded-xl text-xs font-bold text-white transition-all shadow"
@@ -2502,8 +2601,14 @@ export default function App() {
 
       {/* DIALOG LỊCH SỬ TRẬN ĐẤU */}
       {showHistoryDialog && activeGame && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-neutral-950 border border-neutral-800 rounded-3xl w-full max-w-xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+        <div 
+          onClick={() => setShowHistoryDialog(false)}
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn cursor-pointer"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-neutral-950 border border-neutral-800 rounded-3xl w-full max-w-xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden cursor-default"
+          >
             <div className="p-4 border-b border-neutral-900 flex items-center justify-between">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">Nhật Ký Trận Đấu</h3>
               <button
@@ -2522,8 +2627,14 @@ export default function App() {
 
       {/* DIALOG THÔNG TIN CHI TIẾT NGƯỜI CHƠI */}
       {selectedPlayerForInfo && activeGame && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-neutral-950 border border-neutral-800 p-6 rounded-3xl w-full max-w-md shadow-2xl relative space-y-5 overflow-hidden text-left">
+        <div 
+          onClick={() => setSelectedPlayerForInfo(null)}
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn cursor-pointer"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-neutral-950 border border-neutral-800 p-6 rounded-3xl w-full max-w-md shadow-2xl relative space-y-5 overflow-hidden text-left cursor-default"
+          >
             <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
               <div className="flex items-center gap-2.5">
                 <span 
@@ -2662,14 +2773,7 @@ export default function App() {
             {/* PHE THẮNG + ĐIỀU KIỆN THẮNG + DANH SÁCH NGƯỜI THẮNG */}
             {(() => {
               const winners = activeGame.players.filter(p => {
-                if (!activeGame.winnerAlignment) return false;
-                const wa = activeGame.winnerAlignment as string[];
-                // Agnes thắng theo target
-                if (p.character.name.startsWith("Agnes") && p.agnesTargetPlayerId) {
-                  const target = activeGame.players.find(t => t.id === p.agnesTargetPlayerId);
-                  return target ? wa.includes(target.character.alignment) : false;
-                }
-                return wa.includes(p.character.alignment);
+                return activeGame.winnerPlayerIds?.includes(p.id) || false;
               });
               const winnerNames = winners.map(p => p.name + (p.isBot ? " (Bot)" : ""));
               // Lấy điều kiện thắng từ nhân vật của người thắng đầu tiên
@@ -2727,12 +2831,7 @@ export default function App() {
               {activeGame.players.map((p) => {
                 const maxHp = p.character.hp;
                 const lostHp = maxHp - p.currentHp;
-                const wa = activeGame.winnerAlignment as string[] | null;
-                const isWinner = wa ? (
-                  p.character.name.startsWith("Agnes") && p.agnesTargetPlayerId
-                    ? wa.includes(activeGame.players.find(t => t.id === p.agnesTargetPlayerId)?.character.alignment ?? "")
-                    : wa.includes(p.character.alignment)
-                ) : false;
+                const isWinner = activeGame.winnerPlayerIds?.includes(p.id) || false;
                 
                 return (
                   <div 
@@ -2799,9 +2898,15 @@ export default function App() {
       )}
 
       {/* DIALOG XEM TRỘM THÂN PHẬN (DỰ ĐOÁN CỦA ẨN SĨ) */}
-      {activeGame && activeGame.hermitTargetIdentityShown && playerId === activeGame.hermitTargetIdentityShown.viewerId && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-neutral-950 border border-neutral-800 p-6 rounded-3xl w-full max-w-sm shadow-2xl space-y-5 text-center relative overflow-hidden">
+      {activeGame && activeGame.hermitTargetIdentityShown && activeGame.hermitTargetIdentityShown.viewerId === playerId && (
+        <div 
+          onClick={handleCloseIdentityShown}
+          className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fadeIn cursor-pointer"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-neutral-950 border border-neutral-800 p-6 rounded-3xl w-full max-w-sm shadow-2xl space-y-5 text-center relative overflow-hidden cursor-default"
+          >
             <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-widest inline-block">
               Dự Đoán Của Ẩn Sĩ
             </span>

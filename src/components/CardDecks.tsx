@@ -184,7 +184,7 @@ export default function CardDecks({
                   ))}
                 </select>
               </div>
-            ) : activeDrawnCard.id === "l5" || activeDrawnCard.id === "s3" ? (
+            ) : "l_firstaid" === activeDrawnCard.id || "s3" === activeDrawnCard.id ? (
               <div className="space-y-2">
                 <label className="block text-[11px] font-semibold text-neutral-400">
                   Chọn 1 đối tượng để nhận phép thuật:
@@ -196,8 +196,8 @@ export default function CardDecks({
                   className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none focus:ring-1 focus:ring-rose-500"
                 >
                   <option value="">-- Chọn đối tượng --</option>
-                  {/* Có thể chọn chính mình nếu là bài hồi phục l5 */}
-                  {activeDrawnCard.id === "l5" && (
+                  {/* Có thể chọn chính mình nếu là bài hồi phục l_firstaid */}
+                  {"l_firstaid" === activeDrawnCard.id && (
                     <option value={currentPlayerId}>Bản thân ({currentTurnPlayer.name})</option>
                   )}
                   {otherAlivePlayers.map((p) => (
@@ -218,8 +218,8 @@ export default function CardDecks({
               <button
                 onClick={handleResolveCard}
                 disabled={
-                  (activeDrawnCard.type === CardType.HERMIT && !selectedTargetId) ||
-                  ((activeDrawnCard.id === "l5" || activeDrawnCard.id === "s3") && !selectedTargetId)
+                  (CardType.HERMIT === activeDrawnCard.type && !selectedTargetId) ||
+                  (("l_firstaid" === activeDrawnCard.id || "s3" === activeDrawnCard.id) && !selectedTargetId)
                 }
                 className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-35 rounded-xl text-xs font-bold text-white transition-all shadow"
               >

@@ -111,4 +111,11 @@ export interface GameState {
   shadowDiscard?: string[];
   hermitTargetIdentityShown?: { viewerId: string; targetId: string; characterName: string; alignment: string } | null;
   fukaTargetId?: string | null; // Fuka: lượt sau đặt damage của target về 7
+  winnerPlayerIds?: string[] | null;
 }
+
+export interface VictoryResult {
+  winnerAlignment: Alignment[];
+  winnerPlayerIds: string[];
+}
+

@@ -1,4 +1,4 @@
-import { Alignment, Character, Player, GameState, GameLog, CardType, Card } from "../types";
+import { Alignment, Character, Player, GameState, GameLog, CardType, Card, VictoryResult } from "../types";
 import { CHARACTERS, DECK_HERMIT, DECK_LIGHT, DECK_SHADOW, GameCard, getCardById } from "../data/cards";
 import { LOCATIONS, areLocationsInSameArea, getLocationByRoll } from "../data/locations";
 
@@ -114,6 +114,7 @@ export function initGame(playersInLobby: { id: string; name: string; isBot: bool
       }
     ],
     winnerAlignment: null,
+    winnerPlayerIds: null,
     selectedPlayerIdForHermit: null,
     selectedPlayerIdForAttack: null,
     selectedCard: null,
@@ -163,22 +164,25 @@ export function createLog(message: string, type: GameLog["type"] = "info"): Game
 /**
  * Kiểm tra điều kiện thắng trận đấu
  */
-export function checkVictory(players: Player[]): Alignment[] | null {
-  const totalShadows = players.filter(p => p.character.alignment === Alignment.SHADOW).length;
-  const totalHunters = players.filter(p => p.character.alignment === Alignment.HUNTER).length;
+export function checkVictory(players: Player[]): VictoryResult | null {
+  const totalShadows = players.filter(p => Alignment.SHADOW === p.character.alignment).length;
+  const totalHunters = players.filter(p => Alignment.HUNTER === p.character.alignment).length;
 
   const alivePlayers = players.filter(p => !p.isDead);
   const deadPlayers = players.filter(p => p.isDead);
 
-  const aliveShadows = alivePlayers.filter(p => p.character.alignment === Alignment.SHADOW);
-  const aliveHunters = alivePlayers.filter(p => p.character.alignment === Alignment.HUNTER);
-  const deadNeutrals = deadPlayers.filter(p => p.character.alignment === Alignment.NEUTRAL);
+  const aliveShadows = alivePlayers.filter(p => Alignment.SHADOW === p.character.alignment);
+  const aliveHunters = alivePlayers.filter(p => Alignment.HUNTER === p.character.alignment);
+  const deadNeutrals = deadPlayers.filter(p => Alignment.NEUTRAL === p.character.alignment);
 
   // 0. Daniel hoặc Catherine thắng ngay lập tức nếu là người chết đầu tiên
-  const firstDead = deadPlayers.length === 1 ? deadPlayers[0] : null;
-  if (firstDead) {
-    if (firstDead.character.name.startsWith("Daniel") || firstDead.character.name.startsWith("Catherine")) {
-      return [Alignment.NEUTRAL];
+  const firstDead = 1 === deadPlayers.length ? deadPlayers[0] : null;
+  let neutralInstantWin = false;
+
+  if (null !== firstDead) {
+    const fdName = firstDead.character.name;
+    if (fdName.startsWith("Daniel") || fdName.startsWith("Catherine")) {
+      neutralInstantWin = true;
     }
   }
 
@@ -190,75 +194,123 @@ export function checkVictory(players: Player[]): Alignment[] | null {
   // 2. Phe Hunter thắng
   const hunterWins = 0 < totalShadows && 0 === aliveShadows.length;
 
-  const winners: Alignment[] = [];
+  // 3. Kiểm tra các điều kiện thắng lập tức (Instant Win) của phe Neutral khác để dừng game
+  for (const p of players) {
+    if (Alignment.NEUTRAL !== p.character.alignment) continue;
+    const charName = p.character.name;
 
-  if (shadowWins) {
-    winners.push(Alignment.SHADOW);
-  }
-
-  if (hunterWins) {
-    winners.push(Alignment.HUNTER);
-  }
-
-  // 3. Kiểm tra xem có người chơi Neutral nào thắng không
-  const checkNeutralWinners = () => {
-    return players.some(p => {
-      if (p.character.alignment !== Alignment.NEUTRAL) return false;
-      const charName = p.character.name;
-      if (charName.startsWith("Allie")) return !p.isDead;
-      if (charName.startsWith("Bob")) return p.equipments.length >= 5;
-      if (charName.startsWith("Charles")) return (p.killsCount || 0) >= 3;
-      if (charName.startsWith("Daniel")) {
-        return (firstDead && firstDead.id === p.id) || (!p.isDead && hunterWins);
-      }
-      if (charName.startsWith("Agnes")) {
-        const myIndex = players.findIndex(pl => pl.id === p.id);
-        const targetId = p.agnesTargetPlayerId || players[(myIndex - 1 + players.length) % players.length].id;
-        const targetPlayer = players.find(pl => pl.id === targetId);
-        if (!targetPlayer) return false;
-        
-        if (targetPlayer.character.alignment === Alignment.SHADOW) return shadowWins;
-        if (targetPlayer.character.alignment === Alignment.HUNTER) return hunterWins;
-        
-        if (targetPlayer.character.alignment === Alignment.NEUTRAL) {
-          const tName = targetPlayer.character.name;
-          if (tName.startsWith("Allie")) return !targetPlayer.isDead;
-          if (tName.startsWith("Bob")) return targetPlayer.equipments.length >= 5;
-          if (tName.startsWith("Charles")) return (targetPlayer.killsCount || 0) >= 3;
-          if (tName.startsWith("Daniel")) return (firstDead && firstDead.id === targetPlayer.id) || (!targetPlayer.isDead && hunterWins);
-          if (tName.startsWith("Bryan")) return !!targetPlayer.bryanKilledHp13 || (targetPlayer.locationId === "loc_anvil" && !targetPlayer.isDead);
-          if (tName.startsWith("Catherine")) return (firstDead && firstDead.id === targetPlayer.id) || (alivePlayers.length <= 2 && !targetPlayer.isDead);
-          if (tName.startsWith("David")) {
-            const count = targetPlayer.equipments.filter(eq => ["l_talisman", "l_spear", "l_holyrobe", "l_rosary"].includes(eq)).length;
-            return count >= 3;
-          }
-        }
-        return false;
-      }
-      if (charName.startsWith("Bryan")) {
-        return !!p.bryanKilledHp13 || (p.locationId === "loc_anvil" && !p.isDead);
-      }
-      if (charName.startsWith("Catherine")) {
-        return (firstDead && firstDead.id === p.id) || (alivePlayers.length <= 2 && !p.isDead);
-      }
-      if (charName.startsWith("David")) {
-        const count = p.equipments.filter(eq => ["l_talisman", "l_spear", "l_holyrobe", "l_rosary"].includes(eq)).length;
-        return count >= 3;
-      }
-      return false;
-    });
-  };
-
-  const hasNeutralWin = checkNeutralWinners();
-
-  if (winners.length > 0 || hasNeutralWin) {
-    if (!winners.includes(Alignment.NEUTRAL) && hasNeutralWin) {
-      winners.push(Alignment.NEUTRAL);
+    // Bob có >= 5 trang bị
+    if (charName.startsWith("Bob") && 5 <= p.equipments.length) {
+      neutralInstantWin = true;
     }
-    return winners;
+    // Charles diệt >= 3 người
+    if (charName.startsWith("Charles") && 3 <= (p.killsCount || 0)) {
+      neutralInstantWin = true;
+    }
+    // David có >= 3 trang bị thánh tích
+    if (charName.startsWith("David")) {
+      const count = p.equipments.filter(eq => ["l_talisman", "l_spear", "l_holyrobe", "l_rosary"].includes(eq)).length;
+      if (3 <= count) {
+        neutralInstantWin = true;
+      }
+    }
+    // Bryan hạ gục người có HP tối đa >= 13
+    if (charName.startsWith("Bryan") && p.bryanKilledHp13) {
+      neutralInstantWin = true;
+    }
+    // Catherine là 1 trong 2 người cuối cùng còn sống
+    if (charName.startsWith("Catherine") && 2 >= alivePlayers.length && false === p.isDead) {
+      neutralInstantWin = true;
+    }
   }
 
-  return null;
+  const isGameOver = shadowWins || hunterWins || neutralInstantWin;
+  if (false === isGameOver) {
+    return null;
+  }
+
+  const winnerAlignments: Alignment[] = [];
+  if (shadowWins) {
+    winnerAlignments.push(Alignment.SHADOW);
+  }
+  if (hunterWins) {
+    winnerAlignments.push(Alignment.HUNTER);
+  }
+
+  const winningPlayerIds: string[] = [];
+
+  // Thêm người chơi phe Shadow nếu Shadow thắng
+  if (shadowWins) {
+    players.forEach(p => {
+      if (Alignment.SHADOW === p.character.alignment) {
+        winningPlayerIds.push(p.id);
+      }
+    });
+  }
+
+  // Thêm người chơi phe Hunter nếu Hunter thắng
+  if (hunterWins) {
+    players.forEach(p => {
+      if (Alignment.HUNTER === p.character.alignment) {
+        winningPlayerIds.push(p.id);
+      }
+    });
+  }
+
+  // Pass 1: Kiểm tra tất cả Neutral trừ Agnes
+  players.forEach(p => {
+    if (Alignment.NEUTRAL !== p.character.alignment) return;
+    const charName = p.character.name;
+    if (charName.startsWith("Agnes")) return; // Để xét ở Pass 2
+
+    let neutralWon = false;
+    if (charName.startsWith("Allie")) {
+      neutralWon = false === p.isDead;
+    } else if (charName.startsWith("Bob")) {
+      neutralWon = 5 <= p.equipments.length;
+    } else if (charName.startsWith("Charles")) {
+      neutralWon = 3 <= (p.killsCount || 0);
+    } else if (charName.startsWith("Daniel")) {
+      neutralWon = (null !== firstDead && firstDead.id === p.id) || (false === p.isDead && hunterWins);
+    } else if (charName.startsWith("Bryan")) {
+      neutralWon = !!p.bryanKilledHp13 || ("loc_anvil" === p.locationId && false === p.isDead);
+    } else if (charName.startsWith("Catherine")) {
+      neutralWon = (null !== firstDead && firstDead.id === p.id) || (2 >= alivePlayers.length && false === p.isDead);
+    } else if (charName.startsWith("David")) {
+      const count = p.equipments.filter(eq => ["l_talisman", "l_spear", "l_holyrobe", "l_rosary"].includes(eq)).length;
+      neutralWon = 3 <= count;
+    }
+
+    if (neutralWon) {
+      winningPlayerIds.push(p.id);
+    }
+  });
+
+  // Pass 2: Kiểm tra Agnes dựa trên trạng thái thắng của mục tiêu
+  players.forEach(p => {
+    if (Alignment.NEUTRAL !== p.character.alignment) return;
+    const charName = p.character.name;
+    if (!charName.startsWith("Agnes")) return;
+
+    const myIndex = players.findIndex(pl => pl.id === p.id);
+    const targetId = p.agnesTargetPlayerId || players[(myIndex - 1 + players.length) % players.length].id;
+    
+    // Nếu mục tiêu của Agnes đã thắng (phe Hunter/Shadow thắng, hoặc Neutral thắng ở Pass 1)
+    if (winningPlayerIds.includes(targetId)) {
+      winningPlayerIds.push(p.id);
+    }
+  });
+
+  // Thêm Alignment.NEUTRAL vào winnerAlignments nếu có Neutral thắng
+  const hasNeutralWinner = players.some(p => Alignment.NEUTRAL === p.character.alignment && winningPlayerIds.includes(p.id));
+  if (hasNeutralWinner) {
+    winnerAlignments.push(Alignment.NEUTRAL);
+  }
+
+  return {
+    winnerAlignment: winnerAlignments,
+    winnerPlayerIds: winningPlayerIds
+  };
 }
 
 /**
@@ -538,15 +590,17 @@ export function performAttack(
   });
 
   // Kiểm tra điều kiện thắng
-  const winners = checkVictory(updatedPlayers);
+  const victoryResult = checkVictory(updatedPlayers);
   let newPhase = gameState.phase;
   let winnerAlignment: Alignment[] | string[] | null = null;
+  let winnerPlayerIds: string[] | null = null;
 
-  if (null !== winners) {
+  if (null !== victoryResult) {
     newPhase = "game_over";
-    winnerAlignment = winners;
+    winnerAlignment = victoryResult.winnerAlignment;
+    winnerPlayerIds = victoryResult.winnerPlayerIds;
     updatedPlayers = updatedPlayers.map(p => ({ ...p, alignmentRevealed: true }));
-    logs.push(createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Phe chiến thắng: ${winners.join(", ")}!`, "system"));
+    logs.push(createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Phe chiến thắng: ${victoryResult.winnerAlignment.join(", ")}!`, "system"));
   }
 
   return {
@@ -557,6 +611,7 @@ export function performAttack(
     lastAttackDice: { d6: attackD6, d4: attackD4, damage: damageRoll },
     phase: newPhase,
     winnerAlignment,
+    winnerPlayerIds,
     diceAnimState
   };
 }
@@ -725,15 +780,17 @@ export function applyHermitCard(
   }
 
   // Check victory after damage
-  const winners = checkVictory(updatedPlayers);
+  const victoryResult = checkVictory(updatedPlayers);
   let newPhase = gameState.phase;
   let winnerAlignment = gameState.winnerAlignment;
+  let winnerPlayerIds = gameState.winnerPlayerIds;
 
-  if (null !== winners) {
+  if (null !== victoryResult) {
     newPhase = "game_over";
-    winnerAlignment = winners;
+    winnerAlignment = victoryResult.winnerAlignment;
+    winnerPlayerIds = victoryResult.winnerPlayerIds;
     updatedPlayers = updatedPlayers.map(p => ({ ...p, alignmentRevealed: true }));
-    logs.push(createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${winners.join(", ")}!`, "system"));
+    logs.push(createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${victoryResult.winnerAlignment.join(", ")}!`, "system"));
   }
 
   return {
@@ -742,6 +799,7 @@ export function applyHermitCard(
     logs: [...logs, ...gameState.logs],
     phase: newPhase,
     winnerAlignment,
+    winnerPlayerIds,
     selectedPlayerIdForHermit: null,
     hermitTargetIdentityShown
   };
@@ -798,7 +856,8 @@ export function useGameCard(
         break;
 
       case "l_chocolate": // Chocolate: Nhân vật bắt đầu bằng A, E, U có thể lật và full heal
-        const startsWithAEU = source.character.name.startsWith("Allie") || source.character.name.startsWith("Emi") || source.character.name.startsWith("Unknown");
+        const firstLetter = source.character.name.charAt(0).toUpperCase();
+        const startsWithAEU = "A" === firstLetter || "E" === firstLetter || "U" === firstLetter;
         if (startsWithAEU) {
           source.alignmentRevealed = true;
           source.currentHp = source.character.hp;
@@ -1041,15 +1100,17 @@ export function useGameCard(
   }
 
   // Check victory after actions
-  const winners = checkVictory(updatedPlayers);
+  const victoryResult = checkVictory(updatedPlayers);
   let newPhase = gameState.phase;
   let winnerAlignment = gameState.winnerAlignment;
+  let winnerPlayerIds = gameState.winnerPlayerIds;
 
-  if (null !== winners) {
+  if (null !== victoryResult) {
     newPhase = "game_over";
-    winnerAlignment = winners;
+    winnerAlignment = victoryResult.winnerAlignment;
+    winnerPlayerIds = victoryResult.winnerPlayerIds;
     updatedPlayers = updatedPlayers.map(p => ({ ...p, alignmentRevealed: true }));
-    logs.push(createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${winners.join(", ")}!`, "system"));
+    logs.push(createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${victoryResult.winnerAlignment.join(", ")}!`, "system"));
   }
 
   return {
@@ -1058,6 +1119,7 @@ export function useGameCard(
     logs: [...logs, ...gameState.logs],
     phase: newPhase,
     winnerAlignment,
+    winnerPlayerIds,
     selectedCard: null,
     hermitDiscard: CardType.HERMIT === card.type ? nextDiscard : gameState.hermitDiscard,
     lightDiscard: CardType.LIGHT === card.type ? nextDiscard : gameState.lightDiscard,
@@ -1168,14 +1230,15 @@ export function activateCharacterAbility(
         const fukaTarget = updatedPlayers.find(p => p.id === targetPlayerId);
         player.hasUsedAbility = true;
         logs.push(createLog(`⏳ [Trì Hoãn Thần Thời] Fuka [${player.name}] chọn mục tiêu ${fukaTarget?.name || targetPlayerId}. Đầu lượt sau của họ, sát thương sẽ bị đặt về 7!`, "action"));
-        const winners2 = checkVictory(updatedPlayers);
+        const victoryResult = checkVictory(updatedPlayers);
         return {
           ...gameState,
           players: updatedPlayers,
           logs: [...logs, ...gameState.logs],
           fukaTargetId: targetPlayerId,
-          phase: winners2 ? "game_over" : gameState.phase,
-          winnerAlignment: winners2 || gameState.winnerAlignment
+          phase: victoryResult ? "game_over" : gameState.phase,
+          winnerAlignment: victoryResult ? victoryResult.winnerAlignment : gameState.winnerAlignment,
+          winnerPlayerIds: victoryResult ? victoryResult.winnerPlayerIds : gameState.winnerPlayerIds
         };
       } else {
         logs.push(createLog(`⚠️ Fuka cần chọn mục tiêu!`, "system"));
@@ -1252,15 +1315,17 @@ export function activateCharacterAbility(
   }
 
   // Check victory after ability usage
-  const winners = checkVictory(updatedPlayers);
+  const victoryResult = checkVictory(updatedPlayers);
   let newPhase = gameState.phase;
   let winnerAlignment = gameState.winnerAlignment;
+  let winnerPlayerIds = gameState.winnerPlayerIds;
 
-  if (null !== winners) {
+  if (null !== victoryResult) {
     newPhase = "game_over";
-    winnerAlignment = winners;
+    winnerAlignment = victoryResult.winnerAlignment;
+    winnerPlayerIds = victoryResult.winnerPlayerIds;
     updatedPlayers = updatedPlayers.map(p => ({ ...p, alignmentRevealed: true }));
-    logs.push(createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${winners.join(", ")}!`, "system"));
+    logs.push(createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${victoryResult.winnerAlignment.join(", ")}!`, "system"));
   }
 
   return {
@@ -1268,7 +1333,8 @@ export function activateCharacterAbility(
     players: updatedPlayers,
     logs: [...logs, ...gameState.logs],
     phase: newPhase,
-    winnerAlignment
+    winnerAlignment,
+    winnerPlayerIds
   };
 }
 

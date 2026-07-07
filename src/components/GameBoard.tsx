@@ -44,7 +44,7 @@ export default function GameBoard({
       
       {/* Người chơi chưa di chuyển (chờ lượt 1) */}
       {0 < unmovedPlayers.length && (
-        <div className="p-3 bg-amber-950/20 border border-amber-500/30 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs text-amber-300">
+        <div className="hidden sm:flex p-3 bg-amber-950/20 border border-amber-500/30 rounded-2xl flex-wrap items-center justify-between gap-2 text-xs text-amber-300">
           <span className="font-bold flex items-center gap-1.5 text-[11px]">
             🚩 Chưa di chuyển lượt đầu ({unmovedPlayers.length}):
           </span>
@@ -64,30 +64,30 @@ export default function GameBoard({
 
       {/* 2. Bản đồ 6 Địa Điểm Ghép Cặp (Areas) */}
       <div className="space-y-3 w-full">
-        <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-1.5 pl-1">
-          <Compass className="w-4 h-4 text-rose-500" />
+        <h3 className="text-[10px] sm:text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-1.5 pl-1">
+          <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500" />
           Bản đồ Thế giới Shadow Hunters
         </h3>
 
         {/* Thiết kế bản đồ phân chia 3 cột (khu vực) chứa các thẻ dọc bo tròn */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-4 md:gap-5">
           {areas.map((area, aIdx) => (
             <div 
               key={aIdx}
-              className="border border-neutral-800 bg-neutral-900/10 rounded-2xl p-4 flex flex-col gap-4 shadow-xl"
+              className="border border-neutral-800 bg-neutral-900/10 rounded-xl sm:rounded-2xl p-1.5 sm:p-4 flex flex-col gap-2 sm:gap-4 shadow-xl"
             >
               {/* Tiêu đề khu vực đầu cột */}
-              <div className="flex items-center gap-2 border-b border-neutral-850 pb-2.5">
-                <span className={`w-2 h-2 rounded-full animate-pulse shrink-0 ${
+              <div className="flex items-center gap-1.5 border-b border-neutral-850 pb-1.5 sm:pb-2.5">
+                <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-pulse shrink-0 ${
                   0 === aIdx ? "bg-emerald-500" : 1 === aIdx ? "bg-blue-500" : "bg-purple-500"
                 }`}></span>
-                <span className={`text-[10px] font-bold uppercase tracking-wider ${area.accentColor}`}>
+                <span className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-wider truncate ${area.accentColor}`}>
                   {area.name}
                 </span>
               </div>
 
               {/* Danh sách 2 thẻ dọc địa điểm */}
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2 sm:gap-4 flex-1">
                 {area.locIds.map((locId) => {
                   const loc = locations.find((l) => l.id === locId)!;
                   const standingPlayers = players.filter((p) => loc.id === p.locationId && false === p.isDead);
@@ -95,42 +95,42 @@ export default function GameBoard({
                   return (
                     <div 
                       key={loc.id}
-                      className="bg-neutral-950/80 border border-neutral-850 hover:border-neutral-800 rounded-xl p-3.5 flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:bg-neutral-950 shadow-md group relative text-left"
+                      className="bg-neutral-950/80 border border-neutral-850 hover:border-neutral-800 rounded-lg sm:rounded-xl p-1.5 sm:p-3.5 flex flex-col justify-between flex-1 min-h-[105px] sm:min-h-[140px] transition-all duration-300 hover:bg-neutral-950 shadow-md group relative text-left"
                     >
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-1.5">
+                      <div className="space-y-1 sm:space-y-2">
+                        <div className="flex items-start justify-between gap-1">
                           <div className="min-w-0">
-                            <h4 className="text-white font-bold text-xs tracking-tight leading-snug group-hover:text-rose-400 transition-colors truncate">
+                            <h4 className="text-white font-bold text-[9px] sm:text-xs tracking-tight leading-snug group-hover:text-rose-400 transition-colors truncate" title={loc.name}>
                               {loc.name}
                             </h4>
-                            <p className="text-[9px] text-neutral-500 font-mono mt-0.5">
-                              Đổ xúc xắc: {loc.rollValues.join("/")}
+                            <p className="text-[7px] sm:text-[9px] text-neutral-500 font-mono mt-0.5">
+                              Xúc xắc: {loc.rollValues.join("/")}
                             </p>
                           </div>
                         </div>
 
-                        <p className="text-[11px] text-neutral-400 leading-relaxed font-medium">
+                        <p className="text-[8px] sm:text-[11px] text-neutral-400 leading-normal sm:leading-relaxed font-medium line-clamp-3 sm:line-clamp-none">
                           {loc.description}
                         </p>
                       </div>
 
                       {/* Hiển thị danh sách người chơi đang ở đây */}
-                      <div className="border-t border-neutral-900 pt-2.5 mt-2.5">
-                        <span className="text-[8px] text-neutral-500 block mb-1.5 font-bold uppercase tracking-wider">
-                          Người chơi ở đây ({standingPlayers.length}):
+                      <div className="border-t border-neutral-900 pt-1.5 sm:pt-2.5 mt-1.5 sm:mt-2.5">
+                        <span className="text-[7px] sm:text-[8px] text-neutral-500 block mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">
+                          Ở đây ({standingPlayers.length}):
                         </span>
                         {0 === standingPlayers.length ? (
-                          <span className="text-[9px] text-neutral-600 italic">Trống</span>
+                          <span className="text-[8px] sm:text-[9px] text-neutral-600 italic">Trống</span>
                         ) : (
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-0.5 sm:gap-1">
                             {standingPlayers.map((p) => (
                               <span 
                                 key={p.id}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold text-white shadow transition-all hover:scale-105"
+                                className="inline-flex items-center gap-0.5 sm:gap-1 px-1 py-0.2 sm:px-1.5 sm:py-0.5 rounded text-[7px] sm:text-[9px] font-semibold text-white shadow transition-all hover:scale-105"
                                 style={{ backgroundColor: p.color + "20", border: `1px solid ${p.color}40` }}
                               >
                                 <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: p.color }}></span>
-                                <span className="truncate max-w-[80px]">{p.name}</span>
+                                <span className="truncate max-w-[35px] sm:max-w-[80px]">{p.name}</span>
                               </span>
                             ))}
                           </div>
