@@ -1,0 +1,46 @@
+{
+  "entities": {
+    "Player": {
+      "title": "Player",
+      "description": "A player inside a game room",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "character": { "type": "object" },
+        "currentHp": { "type": "integer" },
+        "locationId": { "type": "string" },
+        "alignmentRevealed": { "type": "boolean" },
+        "equipments": { "type": "array" },
+        "isBot": { "type": "boolean" },
+        "isDead": { "type": "boolean" },
+        "color": { "type": "string" }
+      },
+      "required": ["id", "name", "character", "currentHp", "isBot", "isDead"]
+    },
+    "Room": {
+      "title": "Room",
+      "description": "A Shadow Hunters game room holding the game state",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "players": { "type": "array" },
+        "turnIndex": { "type": "integer" },
+        "phase": { "type": "string" },
+        "rolledDice": { "type": "integer" },
+        "logs": { "type": "array" },
+        "winnerAlignment": { "type": "string" },
+        "isPublicRoom": { "type": "boolean" },
+        "createdAt": { "type": "integer" },
+        "roundNumber": { "type": "integer" }
+      },
+      "required": ["roomId", "players", "turnIndex", "phase", "createdAt"]
+    }
+  },
+  "firestore": {
+    "rooms/{roomId}": {
+      "schema": "Room",
+      "description": "The Firestore collection containing all active and lobby game rooms."
+    }
+  }
+}

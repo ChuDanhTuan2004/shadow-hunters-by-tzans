@@ -1,0 +1,6 @@
+{
+  "name": "Shadow Hunters Việt",
+  "description": "Trò chơi Board Game Shadow Hunters tiếng Việt kịch tính, hỗ trợ chơi đơn với Bot AI và phòng chơi trực tuyến thời gian thực với Firebase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
