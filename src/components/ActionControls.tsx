@@ -51,7 +51,7 @@ export default function ActionControls({
         <>
           {/* Tấn công */}
           {"attack" === activeGame.phase && (
-            <div className="mb-4 bg-transparent border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left mx-auto">
+            <div className="mb-4 bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left mx-auto">
               <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block">
                 ⚔️ Khai Chiến Tấn Công
               </span>
@@ -146,7 +146,7 @@ export default function ActionControls({
 
           {/* Cướp trang bị (Bàn Thờ Cổ) */}
           {"action" === activeGame.phase && "loc_anvil" === currentTurnPlayer.locationId && (
-            <div className="mb-4 bg-transparent border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left mx-auto">
+            <div className="mb-4 bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left mx-auto">
               <span className="text-[10px] font-bold text-amber-400 uppercase block tracking-wider">
                 🎒 Cướp Trang Bị (Bàn Thờ Cổ)
               </span>
@@ -230,7 +230,7 @@ export default function ActionControls({
 
           {/* Ma Lực Rừng Rậm Kỳ Dị */}
           {"action" === activeGame.phase && "loc_woods" === currentTurnPlayer.locationId && (
-            <div className="mb-4 bg-transparent border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left mx-auto">
+            <div className="mb-4 bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left mx-auto">
               <span className="text-[10px] font-bold text-purple-400 uppercase block tracking-wider">
                 🌲 Ma Lực Rừng Rậm Kỳ Dị
               </span>
@@ -295,7 +295,7 @@ export default function ActionControls({
             if (!isDavid || deadPlayersWithEquips.length === 0) return null;
 
             return (
-              <div className="mb-4 bg-transparent border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left mx-auto animate-fadeIn">
+              <div className="mb-4 bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left mx-auto animate-fadeIn">
                 <span className="text-[10px] font-bold text-amber-400 uppercase block tracking-wider">
                   🪦 Kỹ năng: Đào Mộ Thánh Tích
                 </span>
@@ -421,7 +421,7 @@ export default function ActionControls({
         }
 
         return (
-          <div className="grid grid-cols-12 items-center gap-3 sm:gap-4 bg-transparent border border-neutral-800 p-3 sm:p-5 rounded-2xl shrink-0">
+          <div className="grid grid-cols-12 items-center gap-3 sm:gap-4 bg-neutral-900 border border-neutral-800 p-3 sm:p-5 rounded-2xl shrink-0">
             {/* Left: Status */}
             <div className="col-span-7 sm:col-span-8 flex flex-col text-left justify-center min-w-0">
               <div>
@@ -444,14 +444,14 @@ export default function ActionControls({
                 disabled={!isLeftButtonActive}
                 className={`w-16 h-16 xs:w-18 xs:h-18 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full border-2 text-center flex flex-col items-center justify-center p-1 sm:p-2 transition-all duration-300 shadow-lg ${
                   isLeftButtonActive
-                    ? "bg-transparent border-[#e58800] text-[#e58800] hover:bg-[#e58800]/20 hover:scale-105 active:scale-95 shadow-[0_0_10px_rgba(229,136,0,0.25)] cursor-pointer ring-1 ring-[#e58800]/20"
-                    : "bg-transparent border-neutral-850 text-neutral-600 cursor-not-allowed opacity-50"
+                    ? "bg-[#4437AC]/10 border-[#4437AC] text-[#7BA2BE] hover:bg-[#4437AC]/35 hover:scale-105 active:scale-95 shadow-[0_0_10px_rgba(68,55,172,0.2)] cursor-pointer ring-1 ring-[#4437AC]/20"
+                    : "bg-neutral-900/30 border-neutral-850 text-neutral-600 cursor-not-allowed opacity-50"
                 }`}
               >
                 {leftButtonLabel === "KỸ NĂNG" ? (
-                  <Sparkles className="w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 text-[#e58800]" />
+                  <Sparkles className="w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 text-[#7BA2BE]" />
                 ) : (
-                  <Eye className={`w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 ${isLeftButtonActive ? "text-[#e58800]" : "text-neutral-600"}`} />
+                  <Eye className={`w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 ${isLeftButtonActive ? "text-[#7BA2BE]" : "text-neutral-600"}`} />
                 )}
                 <span className="text-[6px] xs:text-[7px] sm:text-[8px] md:text-[9px] font-bold uppercase tracking-wider leading-tight max-w-[45px] sm:max-w-[75px] truncate">{leftButtonLabel}</span>
               </button>
@@ -462,15 +462,15 @@ export default function ActionControls({
                 disabled={!isRightButtonActive}
                 className={`w-16 h-16 xs:w-18 xs:h-18 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full border-2 text-center flex flex-col items-center justify-center p-1 sm:p-2 transition-all duration-300 shadow-lg ${
                   isRightButtonActive
-                    ? "bg-transparent border-[#e58800] text-[#e58800] hover:bg-[#e58800]/20 hover:scale-105 active:scale-95 shadow-[0_0_10px_rgba(229,136,0,0.25)] cursor-pointer ring-1 ring-[#e58800]/20"
-                    : "bg-transparent border-neutral-850 text-neutral-600 cursor-not-allowed opacity-50"
+                    ? "bg-[#7BA2BE]/10 border-[#7BA2BE] text-[#7BA2BE] hover:bg-[#7BA2BE]/20 hover:scale-105 active:scale-95 shadow-[0_0_10px_rgba(123,162,190,0.2)] cursor-pointer ring-1 ring-[#7BA2BE]/20"
+                    : "bg-neutral-900/30 border-neutral-850 text-neutral-600 cursor-not-allowed opacity-50"
                 }`}
               >
                 {isRightButtonActive ? (
                   "roll" === activeGame.phase ? (
-                    <Dices className="w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 text-[#e58800]" />
+                    <Dices className="w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 text-[#7BA2BE]" />
                   ) : (
-                    <ArrowRight className="w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 text-[#e58800]" />
+                    <ArrowRight className="w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 text-[#7BA2BE]" />
                   )
                 ) : (
                   <Dices className="w-4 h-4 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 text-neutral-600" />
