@@ -127,6 +127,11 @@ export function useGameSession() {
         }
 
         setActiveGame(updatedState);
+
+        // Chuyển sang màn hình chơi khi host khai chiến (phase chuyển sang roll/action)
+        if ("waiting_room" === view && "waiting" !== updatedState.phase) {
+          setView("playing");
+        }
       });
       return () => unsubscribe();
     }
