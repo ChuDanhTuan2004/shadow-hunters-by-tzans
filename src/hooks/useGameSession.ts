@@ -119,9 +119,13 @@ export function useGameSession() {
 
   const handleAddBotInLobby = async () => {
     if (!activeGame || !roomId) return;
-    if (activeGame.players.length >= 8) return;
+    if (12 <= activeGame.players.length) return;
 
-    const botColors = ["#EF4444", "#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899", "#14B8A6", "#6B7280"];
+    const botColors = [
+      "#EF4444", "#3B82F6", "#10B981", "#F59E0B", 
+      "#8B5CF6", "#EC4899", "#14B8A6", "#6B7280",
+      "#84CC16", "#6366F1", "#F97316", "#06B6D4"
+    ];
     const botNames = ["Hắc Long Bot", "Bạch Hổ Bot", "Ẩn Sĩ Bot", "Bóng Ma Bot", "Thợ Săn Bot", "Dân Thường Bot"];
     const randomName = botNames[Math.floor(Math.random() * botNames.length)];
     const uniqueName = `${randomName} #${Math.floor(Math.random() * 900) + 100}`;

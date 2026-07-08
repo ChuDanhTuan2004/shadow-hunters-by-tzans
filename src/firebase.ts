@@ -114,15 +114,19 @@ export async function joinGameRoom(
     throw new Error("Trận đấu trong phòng này đã bắt đầu!");
   }
 
-  if (roomData.players.length >= 8) {
-    throw new Error("Phòng đã đầy (Tối đa 8 người chơi)!");
+  if (12 <= roomData.players.length) {
+    throw new Error("Phòng đã đầy (Tối đa 12 người chơi)!");
   }
 
   // Check if player already in room
   const alreadyIn = roomData.players.some((p: any) => p.id === playerId);
   if (alreadyIn) return true;
 
-  const playerColors = ["#EF4444", "#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899", "#14B8A6", "#6B7280"];
+  const playerColors = [
+    "#EF4444", "#3B82F6", "#10B981", "#F59E0B", 
+    "#8B5CF6", "#EC4899", "#14B8A6", "#6B7280",
+    "#84CC16", "#6366F1", "#F97316", "#06B6D4"
+  ];
   const assignedColor = playerColors[roomData.players.length % playerColors.length];
 
   const newPlayer = {

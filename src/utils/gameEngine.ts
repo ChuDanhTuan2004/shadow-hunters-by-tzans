@@ -36,10 +36,26 @@ export function assignCharactersForPlayers(count: number): Character[] {
     shadowCount = 3;
     hunterCount = 3;
     neutralCount = 1;
-  } else if (8 <= count) {
+  } else if (8 === count) {
     shadowCount = 3;
     hunterCount = 3;
     neutralCount = 2;
+  } else if (9 === count) {
+    shadowCount = 3;
+    hunterCount = 3;
+    neutralCount = 3;
+  } else if (10 === count) {
+    shadowCount = 3;
+    hunterCount = 3;
+    neutralCount = 4;
+  } else if (11 === count) {
+    shadowCount = 4;
+    hunterCount = 4;
+    neutralCount = 3;
+  } else if (12 <= count) {
+    shadowCount = 4;
+    hunterCount = 4;
+    neutralCount = 4;
   }
 
   const selected: Character[] = [
@@ -58,7 +74,11 @@ export function initGame(playersInLobby: { id: string; name: string; isBot: bool
   const finalPlayersList = [...playersInLobby];
   
   // Đảm bảo có ít nhất 3 người chơi bằng cách thêm Bot
-  const botColors = ["#EF4444", "#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899", "#14B8A6", "#6B7280"];
+  const botColors = [
+    "#EF4444", "#3B82F6", "#10B981", "#F59E0B", 
+    "#8B5CF6", "#EC4899", "#14B8A6", "#6B7280",
+    "#84CC16", "#6366F1", "#F97316", "#06B6D4"
+  ];
   const botNames = ["Hắc Long Bot", "Bạch Hổ Bot", "Ẩn Sĩ Bot", "Bóng Ma Bot", "Thợ Săn Bot", "Dân Thường Bot"];
   
   while (3 > finalPlayersList.length) {

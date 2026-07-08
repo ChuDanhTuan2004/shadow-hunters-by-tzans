@@ -268,7 +268,7 @@ export default function Lobby({
                             #{room.roomId}
                           </span>
                           <span className="text-xs text-neutral-400 font-semibold mt-1 block">
-                            Người chơi: <strong className="text-white">{room.players?.length || 0}/8</strong> • Chủ phòng: <strong className="text-white">{room.players?.[0]?.name || "Ẩn danh"}</strong>
+                            Người chơi: <strong className="text-white">{room.players?.length || 0}/12</strong> • Chủ phòng: <strong className="text-white">{room.players?.[0]?.name || "Ẩn danh"}</strong>
                           </span>
                         </div>
                         <button

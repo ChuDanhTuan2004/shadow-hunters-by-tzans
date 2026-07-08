@@ -72,9 +72,9 @@ export default function WaitingRoom({
         <div className="bg-[#030408]/50 rounded-2xl border border-[#4437ac]/25 p-5 space-y-4 shadow-[0_0_15px_rgba(68,55,172,0.1)]">
           <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
             <span className="text-xs font-bold text-[#7ba2be] uppercase tracking-wider">
-              Anh Hùng Gia Nhập ({activeGame.players.length}/8)
+              Anh Hùng Gia Nhập ({activeGame.players.length}/12)
             </span>
-            <span className="text-[10px] text-neutral-500 font-semibold">Giới hạn tối đa 8</span>
+            <span className="text-[10px] text-neutral-500 font-semibold">Giới hạn tối đa 12</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -104,7 +104,7 @@ export default function WaitingRoom({
           </div>
 
           {/* Action thêm Bot */}
-          {isHost && activeGame.players.length < 8 && (
+          {isHost && 12 > activeGame.players.length && (
             <button
               onClick={onAddBot}
               className="w-full py-2.5 bg-[#030408]/80 hover:bg-[#4437ac]/20 border border-[#4437ac]/40 hover:border-[#7ba2be]/65 rounded-xl text-xs font-bold text-neutral-300 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
