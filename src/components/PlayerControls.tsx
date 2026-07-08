@@ -53,7 +53,7 @@ export default function PlayerControls({
   };
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 space-y-5 font-sans">
+    <div className="bg-transparent border border-neutral-800 rounded-2xl p-5 space-y-5 font-sans">
       <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest pl-1 border-b border-neutral-800 pb-2 flex items-center gap-2">
         <Swords className="w-4 h-4 text-rose-500" />
         Bảng Điều Khiển Hành Động (Controls)

@@ -396,7 +396,8 @@ export default function ActionControls({
         if (isMyTurn && !isGameOver) {
           isRightButtonActive = true;
           if ("roll" === activeGame.phase) {
-            rightButtonLabel = "ĐỔ XÚC XẮC";
+            const isEmiSpecial = currentTurnPlayer.character.name.startsWith("Emi") && true === currentTurnPlayer.alignmentRevealed && false === currentTurnPlayer.abilityDisabled;
+            rightButtonLabel = isEmiSpecial ? "DỊCH CHUYỂN" : "ĐỔ XÚC XẮC";
             rightButtonAction = onRollMove;
           } else if ("action" === activeGame.phase) {
             rightButtonLabel = "BỎ QUA";

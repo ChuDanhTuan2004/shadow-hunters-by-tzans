@@ -190,6 +190,24 @@ export function useGameplay({
 
     nextState.diceAnimState = null;
 
+    // Emi: Dịch chuyển tức thời khi đã lộ diện và không bị khóa kỹ năng (Yoda style)
+    if (currentPlayer.character.name.startsWith("Emi") && true === currentPlayer.alignmentRevealed && false === currentPlayer.abilityDisabled) {
+      setShowLocationChoice(true);
+      setCompassChoices(null);
+
+      nextState.logs = [
+        createLog(`🔮 ${currentPlayer.name} kích hoạt Dịch Chuyển Tức Thời! Vui lòng chọn địa điểm di chuyển tự do.`, "action"),
+        ...nextState.logs
+      ];
+
+      if ("solo" === gameMode) {
+        setActiveGame(nextState);
+      } else if (null !== roomId) {
+        updateRoomState(roomId, nextState);
+      }
+      return;
+    }
+
     if (currentPlayer.equipments.includes("l_compass")) {
       const roll1 = rollForMovement();
       let roll2 = rollForMovement();

@@ -1417,24 +1417,18 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
     const shouldMove = !canUseUnknown || Math.random() > 0.4;
 
     if (shouldMove) {
-      // Emi có thể tự chọn di chuyển kề bên (chỉ áp dụng khi đã tiết lộ thân phận)
+      // Emi có thể tự chọn di chuyển bất kỳ khi đã tiết lộ thân phận và không bị khóa kỹ năng (Yoda style)
       let rollResult = rollForMovement();
       let chosenLocId = "";
 
-      if (botChar.startsWith("Emi") && currentBot.alignmentRevealed && currentBot.locationId && !currentBot.abilityDisabled) {
-        // Emi chọn di chuyển kề bên thay vì tung xúc xắc (50% cơ hội)
-        if (Math.random() > 0.5) {
-          const adjLocations: { [key: string]: string } = {
-            loc_hermit: "loc_fountain",
-            loc_fountain: "loc_hermit",
-            loc_church: "loc_cemetery",
-            loc_cemetery: "loc_church",
-            loc_anvil: "loc_woods",
-            loc_woods: "loc_anvil"
-          };
-          chosenLocId = adjLocations[currentBot.locationId];
+      if (botChar.startsWith("Emi") && true === currentBot.alignmentRevealed && false === currentBot.abilityDisabled) {
+        const otherLocs = LOCATIONS.filter(l => l.id !== currentBot.locationId);
+        if (otherLocs.length > 0) {
+          const chosen = otherLocs[Math.floor(Math.random() * otherLocs.length)];
+          chosenLocId = chosen.id;
+          rollResult = { total: 0, d6: 0, d4: 0 };
           updatedState.logs = [
-            createLog(`🏃 Bot Emi [${botName}] kích hoạt Dịch Chuyển Kề Bên, tự chọn sang ô cùng khu vực!`, "action"),
+            createLog(`🔮 Bot Emi [${botName}] kích hoạt Dịch Chuyển Tức Thời, tự chọn di chuyển đến [${chosen.name}]!`, "action"),
             ...updatedState.logs
           ];
         }

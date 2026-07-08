@@ -80,10 +80,14 @@ export default function LocationSelectDialog({
           ) : (
             <>
               <span className="text-[9px] border px-2.5 py-0.5 rounded-full font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                Đổ Ra Số 7 May Mắn
+                {activeGame.players[activeGame.turnIndex]?.character.name.startsWith("Emi") && true === activeGame.players[activeGame.turnIndex]?.alignmentRevealed && false === activeGame.players[activeGame.turnIndex]?.abilityDisabled
+                  ? "Dịch Chuyển Tức Thời (Emi)"
+                  : "Đổ Ra Số 7 May Mắn"}
               </span>
               <h3 className="text-lg font-bold text-white tracking-tight pt-1">
-                Chọn Điểm Dịch Chuyển Tự Do
+                {activeGame.players[activeGame.turnIndex]?.character.name.startsWith("Emi") && true === activeGame.players[activeGame.turnIndex]?.alignmentRevealed && false === activeGame.players[activeGame.turnIndex]?.abilityDisabled
+                  ? "Chọn Điểm Dịch Chuyển Của Emi"
+                  : "Chọn Điểm Dịch Chuyển Tự Do"}
               </h3>
               <p className="text-xs text-neutral-400 leading-relaxed">
                 Hãy click chọn 1 địa điểm bất kỳ dưới đây để dịch chuyển token đến đó! (Trừ vị trí hiện tại của bạn)

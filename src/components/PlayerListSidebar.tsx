@@ -105,7 +105,7 @@ export default function PlayerListSidebar({
   // Desktop list
   return (
     <div className="hidden lg:flex lg:col-span-3 flex-col h-full">
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 space-y-3 flex-1 flex flex-col h-full">
+      <div className="bg-transparent border border-neutral-800 rounded-2xl p-4 space-y-3 flex-1 flex flex-col h-full">
         <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest pl-1 border-b border-neutral-850 pb-2">
           Danh Sách Anh Hùng
         </h4>
