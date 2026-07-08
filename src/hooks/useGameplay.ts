@@ -97,28 +97,6 @@ export function useGameplay({
     }
   }, [gameMode, roomId]);
 
-  // Hủy phòng khi Host tắt tab khi đang ở PHÒNG CHỜ
-  useEffect(() => {
-    if ("multiplayer" === gameMode && null !== roomId && null !== activeGame && "waiting_room" === view) {
-      const isHost = playerId === activeGame.players[0]?.id;
-      if (isHost) {
-        const handleBeforeUnload = () => {
-          const cancelledGame = {
-            ...activeGame,
-            phase: "cancelled" as const,
-            logs: [
-              createLog(`🚨 Chủ phòng đã đóng trình duyệt hoặc hủy phòng chờ.`),
-              ...activeGame.logs
-            ]
-          };
-          updateRoomState(roomId, cancelledGame);
-        };
-
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-      }
-    }
-  }, [gameMode, roomId, activeGame, playerId]);
 
   // Help calculate turn index safe guard
   const getTurnIndex = () => (activeGame ? activeGame.turnIndex : 0);

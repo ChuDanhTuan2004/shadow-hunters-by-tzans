@@ -46,7 +46,20 @@ export function useGameSession() {
     return sessionStorage.getItem("sh_room_id") || null;
   });
 
-  const [activeGame, setActiveGame] = useState<GameState | null>(null);
+  const [activeGame, setActiveGame] = useState<GameState | null>(() => {
+    const savedGameMode = sessionStorage.getItem("sh_game_mode");
+    if ("solo" === savedGameMode) {
+      const savedSoloGame = sessionStorage.getItem("sh_active_game_solo");
+      if (savedSoloGame) {
+        try {
+          return JSON.parse(savedSoloGame);
+        } catch (e) {
+          console.error("Failed to parse saved solo game:", e);
+        }
+      }
+    }
+    return null;
+  });
 
   // Đồng bộ hóa trạng thái phiên chơi vào sessionStorage
   useEffect(() => {
@@ -68,6 +81,14 @@ export function useGameSession() {
       sessionStorage.removeItem("sh_room_id");
     }
   }, [roomId]);
+
+  useEffect(() => {
+    if ("solo" === gameMode && activeGame) {
+      sessionStorage.setItem("sh_active_game_solo", JSON.stringify(activeGame));
+    } else if (null === activeGame) {
+      sessionStorage.removeItem("sh_active_game_solo");
+    }
+  }, [activeGame, gameMode]);
 
   // Đăng ký lắng nghe cập nhật Firebase nếu chơi Multiplayer
   useEffect(() => {
