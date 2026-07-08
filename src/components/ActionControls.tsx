@@ -372,7 +372,9 @@ export default function ActionControls({
           } else if (
             (currentTurnPlayer.character.name.startsWith("Franklin") ||
               currentTurnPlayer.character.name.startsWith("Allie") ||
-              currentTurnPlayer.character.name.startsWith("Agnes")) &&
+              currentTurnPlayer.character.name.startsWith("Agnes") ||
+              currentTurnPlayer.character.name.startsWith("Fuka") ||
+              currentTurnPlayer.character.name.startsWith("Ellen")) &&
             !currentTurnPlayer.hasUsedAbility
           ) {
             isLeftButtonActive = true;

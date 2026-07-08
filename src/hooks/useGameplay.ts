@@ -51,6 +51,7 @@ export function useGameplay({
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [showLocationChoice, setShowLocationChoice] = useState(false);
   const [compassChoices, setCompassChoices] = useState<string[] | null>(null);
+  const [showAbilityTargetDialog, setShowAbilityTargetDialog] = useState(false);
 
   // Bot execution loop effects
   useEffect(() => {
@@ -673,12 +674,23 @@ export function useGameplay({
   };
 
   // 11. Tiết lộ danh tính / kích hoạt kỹ năng
-  const handleRevealIdentity = () => {
-    if (!activeGame) return;
+  const handleRevealIdentity = (targetPlayerId?: string) => {
+    if (null === activeGame) {
+      return;
+    }
     const currentPlayer = activeGame.players[getTurnIndex()];
-    let nextState = activateCharacterAbility(activeGame, currentPlayer.id);
+    const charName = currentPlayer.character.name;
 
-    if (gameMode === "solo") {
+    const needsTarget = charName.startsWith("Fuka") || charName.startsWith("Franklin") || charName.startsWith("Ellen");
+    
+    if (needsTarget && !targetPlayerId && !currentPlayer.hasUsedAbility && !currentPlayer.abilityDisabled) {
+      setShowAbilityTargetDialog(true);
+      return;
+    }
+
+    let nextState = activateCharacterAbility(activeGame, currentPlayer.id, targetPlayerId);
+
+    if ("solo" === gameMode) {
       setActiveGame(nextState);
     } else if (roomId) {
       updateRoomState(roomId, nextState);
@@ -987,6 +999,8 @@ export function useGameplay({
     handleCancelCard,
     handleUseWeirdWoods,
     handleActivateDavidAbility,
+    showAbilityTargetDialog,
+    setShowAbilityTargetDialog,
     handleRevealIdentity,
     handleStealEquipment,
     handleEndTurn,

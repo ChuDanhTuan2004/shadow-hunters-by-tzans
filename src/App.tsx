@@ -22,6 +22,7 @@ import HermitPeekDialog from "./components/dialogs/HermitPeekDialog";
 import GateSelectionDialog from "./components/dialogs/GateSelectionDialog";
 import DrawnCardModal from "./components/dialogs/DrawnCardModal";
 import LocationSelectDialog from "./components/dialogs/LocationSelectDialog";
+import AbilityTargetDialog from "./components/dialogs/AbilityTargetDialog";
 
 // Icons
 import { Shield, BookOpen, Settings, LogOut, RefreshCw, History } from "lucide-react";
@@ -90,6 +91,8 @@ export default function App() {
     handleCancelCard,
     handleUseWeirdWoods,
     handleActivateDavidAbility,
+    showAbilityTargetDialog,
+    setShowAbilityTargetDialog,
     handleRevealIdentity,
     handleStealEquipment,
     handleEndTurn,
@@ -400,6 +403,18 @@ export default function App() {
         />
       )}
 
+      {activeGame && (
+        <AbilityTargetDialog
+          isOpen={showAbilityTargetDialog}
+          onClose={() => setShowAbilityTargetDialog(false)}
+          activeGame={activeGame}
+          playerId={playerId}
+          onConfirm={(targetId) => {
+            handleRevealIdentity(targetId);
+            setShowAbilityTargetDialog(false);
+          }}
+        />
+      )}
     </div>
   );
 }
