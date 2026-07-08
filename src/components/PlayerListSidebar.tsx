@@ -17,12 +17,12 @@ export default function PlayerListSidebar({
 }: PlayerListSidebarProps) {
   const turnId = activeGame.players[activeGame.turnIndex]?.id;
 
-  if (mode === "mobile") {
+  if ("mobile" === mode) {
     return (
       <div className="lg:hidden w-full overflow-x-auto scrollbar-none py-1 mb-0">
         <div className="flex gap-2 min-w-max px-1">
           {activeGame.players.map((p) => {
-            const isSelf = playerId === p.id;
+            const isSelf = p.id === playerId;
             const isRevealed = isSelf || p.alignmentRevealed || p.isDead;
             const maxHp = p.character.hp;
             const lostHp = maxHp - p.currentHp;
@@ -34,8 +34,8 @@ export default function PlayerListSidebar({
                 onClick={() => onSelectPlayer(p)}
                 className={`flex flex-col items-center text-center cursor-pointer transition-all duration-300 p-1 rounded-xl border ${
                   isCurrentTurn
-                    ? "bg-[#4437AC]/10 border-[#7BA2BE] scale-105 shadow-[0_0_10px_rgba(123,162,190,0.2)]"
-                    : "border-transparent hover:bg-neutral-900/40"
+                    ? "bg-transparent border-[#7BA2BE] scale-105 shadow-[0_0_10px_rgba(123,162,190,0.2)]"
+                    : "border-transparent hover:bg-neutral-900/20"
                 }`}
               >
                 {/* Avatar with damage badge */}
@@ -123,12 +123,12 @@ export default function PlayerListSidebar({
                 onClick={() => onSelectPlayer(p)}
                 className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${
                   p.isDead
-                    ? "bg-neutral-950/20 border-neutral-900 opacity-60 hover:bg-neutral-900/20"
+                    ? "bg-transparent border-neutral-900 opacity-60 hover:bg-neutral-900/20"
                     : isCurrentTurn
-                      ? "bg-neutral-800/60 border-[#7BA2BE]/50 ring-1 ring-[#7BA2BE]/30 shadow-[0_0_12px_rgba(123,162,190,0.15)] hover:bg-neutral-700/60"
+                      ? "bg-transparent border-[#7BA2BE]/50 ring-1 ring-[#7BA2BE]/30 shadow-[0_0_12px_rgba(123,162,190,0.15)] hover:bg-neutral-700/60"
                       : isSelf
-                        ? "bg-neutral-900/60 border-[#4437AC]/40 hover:bg-neutral-800/60"
-                        : "bg-neutral-950/60 border-neutral-800/80 hover:bg-neutral-900/60"
+                        ? "bg-transparent border-[#4437AC]/40 hover:bg-neutral-800/60"
+                        : "bg-transparent border-neutral-800/80 hover:bg-neutral-900/60"
                 }`}
               >
                 {/* Avatar Area */}
