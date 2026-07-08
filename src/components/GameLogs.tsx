@@ -132,17 +132,8 @@ export default function GameLogs({ logs }: GameLogsProps) {
   };
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 space-y-4 font-sans relative">
-      <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-        <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest pl-1">
-          Nhật Ký Trận Đấu (Battle Logs)
-        </h3>
-        <span className="text-[10px] text-neutral-500 font-mono">
-          Tổng số sự kiện: {logs.length}
-        </span>
-      </div>
-
-      <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1.5 scrollbar-thin">
+    <div className="space-y-2 font-sans relative">
+      <div className="space-y-2 pr-1 scrollbar-thin">
         {logs.length === 0 ? (
           <p className="text-center text-xs text-neutral-500 italic py-4">Chưa có hoạt động nào được ghi nhận.</p>
         ) : (
