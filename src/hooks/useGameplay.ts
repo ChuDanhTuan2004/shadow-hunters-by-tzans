@@ -458,7 +458,7 @@ export function useGameplay({
     const currentPlayer = activeGame.players[getTurnIndex()];
     let nextState = { ...activeGame };
 
-    const isCharles = currentPlayer.character.name.startsWith("Charles") && currentPlayer.alignmentRevealed;
+    const isCharles = currentPlayer.character.name.startsWith("Charles") && currentPlayer.alignmentRevealed && !currentPlayer.abilityDisabled;
     const hasAlreadyAttackedThisTurn = activeGame.lastAttackDamage !== null;
 
     if (isCharles && hasAlreadyAttackedThisTurn) {
@@ -503,7 +503,7 @@ export function useGameplay({
     nextState = performAttack(nextState, currentPlayer.id, targetId);
 
     const checkCharles = nextState.players.find(p => p.id === currentPlayer.id)!;
-    const canCharlesStrikeAgain = checkCharles.character.name.startsWith("Charles") && checkCharles.alignmentRevealed && !checkCharles.isDead;
+    const canCharlesStrikeAgain = checkCharles.character.name.startsWith("Charles") && checkCharles.alignmentRevealed && !checkCharles.isDead && !checkCharles.abilityDisabled;
 
     if (canCharlesStrikeAgain && "game_over" !== nextState.phase) {
       nextState.logs = [

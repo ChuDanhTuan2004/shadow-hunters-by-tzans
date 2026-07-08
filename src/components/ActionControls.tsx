@@ -289,7 +289,7 @@ export default function ActionControls({
 
           {/* Kỹ năng David: Đào Mộ Thánh Tích */}
           {(() => {
-            const isDavid = currentTurnPlayer.character.name.startsWith("David") && currentTurnPlayer.alignmentRevealed && !currentTurnPlayer.hasUsedAbility;
+            const isDavid = currentTurnPlayer.character.name.startsWith("David") && currentTurnPlayer.alignmentRevealed && !currentTurnPlayer.hasUsedAbility && !currentTurnPlayer.abilityDisabled;
             const deadPlayersWithEquips = activeGame.players.filter(p => p.isDead && p.equipments.length > 0);
 
             if (!isDavid || deadPlayersWithEquips.length === 0) return null;
@@ -375,11 +375,14 @@ export default function ActionControls({
               currentTurnPlayer.character.name.startsWith("Agnes") ||
               currentTurnPlayer.character.name.startsWith("Fuka") ||
               currentTurnPlayer.character.name.startsWith("Ellen")) &&
-            !currentTurnPlayer.hasUsedAbility
+            !currentTurnPlayer.hasUsedAbility &&
+            !currentTurnPlayer.abilityDisabled
           ) {
             isLeftButtonActive = true;
             leftButtonLabel = "KỸ NĂNG";
             leftButtonAction = onRevealOrAbility;
+          } else if (currentTurnPlayer.abilityDisabled) {
+            leftButtonLabel = "BỊ KHÓA";
           } else {
             leftButtonLabel = "ĐÃ DÙNG";
           }
