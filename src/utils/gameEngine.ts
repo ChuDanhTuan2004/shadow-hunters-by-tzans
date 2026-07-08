@@ -1750,9 +1750,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
       }
     }
 
-    if (updatedState.roundNumber !== 1) {
-      updatedState.phase = "attack";
-    }
+    updatedState.phase = "attack";
   }
 
   // 3. GIAI ĐOẠN TẤN CÔNG ĐỐI THỦ
@@ -1766,7 +1764,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
         return hasHandgun ? !inSame : inSame;
       });
 
-      if (0 < attackableTargets.length) {
+      if (0 < attackableTargets.length && 1 !== updatedState.roundNumber) {
         // Ưu tiên tấn công kẻ địch đã tiết lộ danh tính tương khắc hoặc tấn công bừa nếu chưa biết vai trò
         let bestTarget = attackableTargets[0];
         
