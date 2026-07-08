@@ -161,6 +161,8 @@ export function listenToRoom(roomId: string, callback: (data: any) => void) {
   return onSnapshot(roomRef, (docSnap) => {
     if (docSnap.exists()) {
       callback(docSnap.data());
+    } else {
+      callback(null);
     }
   });
 }

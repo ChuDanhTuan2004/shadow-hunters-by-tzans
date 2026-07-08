@@ -65,7 +65,7 @@ export default function GameBoard({
       {/* 2. Bản đồ 6 Địa Điểm Ghép Cặp (Areas) */}
       <div className="space-y-3 w-full">
         <h3 className="text-[10px] sm:text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-1.5 pl-1">
-          <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500" />
+          <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7BA2BE]" />
           Bản đồ Thế giới Shadow Hunters
         </h3>
 
@@ -100,7 +100,7 @@ export default function GameBoard({
                       <div className="space-y-1 sm:space-y-2">
                         <div className="flex items-start justify-between gap-1">
                           <div className="min-w-0">
-                            <h4 className="text-white font-bold text-[9px] sm:text-xs tracking-tight leading-snug group-hover:text-rose-400 transition-colors truncate" title={loc.name}>
+                            <h4 className="text-white font-bold text-[9px] sm:text-xs tracking-tight leading-snug group-hover:text-[#7BA2BE] transition-colors truncate" title={loc.name}>
                               {loc.name}
                             </h4>
                             <p className="text-[7px] sm:text-[9px] text-neutral-500 font-mono mt-0.5">
