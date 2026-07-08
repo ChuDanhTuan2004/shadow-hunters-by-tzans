@@ -3,6 +3,16 @@ import { Compass, User } from "lucide-react";
 import { BoardLocation, Player } from "../types";
 import { LOCATIONS } from "../data/locations";
 
+// Mapping location id -> background image
+const LOCATION_BG: Record<string, string> = {
+  loc_hermit:   "/assets/images/map/hermits-cabin.png",
+  loc_fountain: "/assets/images/map/underworld-gate.png",
+  loc_church:   "/assets/images/map/church.png",
+  loc_cemetery: "/assets/images/map/cemetery.png",
+  loc_woods:    "/assets/images/map/weird-woods.png",
+  loc_anvil:    "/assets/images/map/erstwhile-altar.png",
+};
+
 interface GameBoardProps {
   locations: BoardLocation[];
   players: Player[];
@@ -95,7 +105,12 @@ export default function GameBoard({
                   return (
                     <div 
                       key={loc.id}
-                      className="bg-neutral-950/80 border border-neutral-850 hover:border-neutral-800 rounded-lg sm:rounded-xl p-1.5 sm:p-3.5 flex flex-col justify-between flex-1 min-h-[105px] sm:min-h-[140px] transition-all duration-300 hover:bg-neutral-950 shadow-md group relative text-left"
+                      className="border border-neutral-850 hover:border-neutral-700 rounded-lg sm:rounded-xl p-1.5 sm:p-3.5 flex flex-col justify-between flex-1 min-h-[105px] sm:min-h-[140px] transition-all duration-300 shadow-md group relative text-left overflow-hidden"
+                      style={{
+                        backgroundImage: `linear-gradient(to bottom, rgba(10,10,15,0.72) 0%, rgba(10,10,15,0.88) 60%, rgba(10,10,15,0.97) 100%), url(${LOCATION_BG[loc.id]})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
                     >
                       <div className="space-y-1 sm:space-y-2">
                         <div className="flex items-start justify-between gap-1">
