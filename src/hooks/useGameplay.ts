@@ -311,11 +311,18 @@ export function useGameplay({
         nextState.drawnCardId = drawnCardId;
         const card = getCardById(drawnCardId);
         const cardName = card ? card.name : "thẻ bài";
-        nextState.logs = [
-          createLog(`🗃️ ${currentPlayer.name} đã rút thẻ [${cardName}] thuộc Bộ bài ${CardType.HERMIT === deckType ? "Ẩn Sĩ" : CardType.LIGHT === deckType ? "Ánh Sáng" : "Bóng Tối"}.`, "info"),
-          createLog(`🏃 ${currentPlayer.name} di chuyển đến [${finalLoc.name}].`, "info"),
-          ...nextState.logs
-        ];
+        if (CardType.HERMIT === deckType) {
+          nextState.logs = [
+            createLog(`🏃 ${currentPlayer.name} di chuyển đến [${finalLoc.name}].`, "info"),
+            ...nextState.logs
+          ];
+        } else {
+          nextState.logs = [
+            createLog(`🗃️ ${currentPlayer.name} đã rút thẻ [${cardName}] thuộc Bộ bài ${CardType.LIGHT === deckType ? "Ánh Sáng" : "Bóng Tối"}.`, "info"),
+            createLog(`🏃 ${currentPlayer.name} di chuyển đến [${finalLoc.name}].`, "info"),
+            ...nextState.logs
+          ];
+        }
       } else {
         nextState.logs = [
           createLog(`🏃 ${currentPlayer.name} di chuyển đến [${finalLoc.name}].`, "info"),
@@ -375,16 +382,28 @@ export function useGameplay({
       nextState.drawnCardId = drawnCardId;
       const card = getCardById(drawnCardId);
       const cardName = card ? card.name : "thẻ bài";
-      nextState.logs = [
-        createLog(`🗃️ ${currentPlayer.name} đã rút thẻ [${cardName}] thuộc Bộ bài ${CardType.HERMIT === deckType ? "Ẩn Sĩ" : CardType.LIGHT === deckType ? "Ánh Sáng" : "Bóng Tối"}.`, "info"),
-        createLog(
-          isCompassMove
-            ? `🧭 ${currentPlayer.name} sử dụng La Bàn Thần Bí di chuyển đến [${finalLoc.name}].`
-            : `🏃 ${currentPlayer.name} quyết định di chuyển đến [${finalLoc.name}].`,
-          "info"
-        ),
-        ...nextState.logs
-      ];
+      if (CardType.HERMIT === deckType) {
+        nextState.logs = [
+          createLog(
+            isCompassMove
+              ? `🧭 ${currentPlayer.name} sử dụng La Bàn Thần Bí di chuyển đến [${finalLoc.name}].`
+              : `🏃 ${currentPlayer.name} quyết định di chuyển đến [${finalLoc.name}].`,
+            "info"
+          ),
+          ...nextState.logs
+        ];
+      } else {
+        nextState.logs = [
+          createLog(`🗃️ ${currentPlayer.name} đã rút thẻ [${cardName}] thuộc Bộ bài ${CardType.LIGHT === deckType ? "Ánh Sáng" : "Bóng Tối"}.`, "info"),
+          createLog(
+            isCompassMove
+              ? `🧭 ${currentPlayer.name} sử dụng La Bàn Thần Bí di chuyển đến [${finalLoc.name}].`
+              : `🏃 ${currentPlayer.name} quyết định di chuyển đến [${finalLoc.name}].`,
+            "info"
+          ),
+          ...nextState.logs
+        ];
+      }
     } else {
       nextState.logs = [
         createLog(

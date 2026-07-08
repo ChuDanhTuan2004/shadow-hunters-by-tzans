@@ -677,7 +677,7 @@ export function applyHermitCard(
           source.equipments = [...source.equipments, toGive];
           const card = getCardById(toGive);
           const cardName = card ? card.name : "Trang bị";
-          logs.push(createLog(`🤫 [Tống Tiền Của Ẩn Sĩ] ${target.name} đã lựa chọn chuyển giao trang bị [${cardName}] cho ${source.name}.`, "action"));
+          logs.push(createLog(`🤫 ${target.name} đã chuyển giao trang bị [${cardName}] cho ${source.name}.`, "action"));
         } else {
           damageToDeal = 1;
         }
@@ -692,7 +692,7 @@ export function applyHermitCard(
           source.equipments = [...source.equipments, toGive];
           const card = getCardById(toGive);
           const cardName = card ? card.name : "Trang bị";
-          logs.push(createLog(`🤫 [Cơn Giận Của Ẩn Sĩ] ${target.name} đã lựa chọn chuyển giao trang bị [${cardName}] cho ${source.name}.`, "action"));
+          logs.push(createLog(`🤫 ${target.name} đã chuyển giao trang bị [${cardName}] cho ${source.name}.`, "action"));
         } else {
           damageToDeal = 1;
         }
@@ -707,7 +707,7 @@ export function applyHermitCard(
           source.equipments = [...source.equipments, toGive];
           const card = getCardById(toGive);
           const cardName = card ? card.name : "Trang bị";
-          logs.push(createLog(`🤫 [Lòng Tham Của Ẩn Sĩ] ${target.name} đã lựa chọn chuyển giao trang bị [${cardName}] cho ${source.name}.`, "action"));
+          logs.push(createLog(`🤫 ${target.name} đã chuyển giao trang bị [${cardName}] cho ${source.name}.`, "action"));
         } else {
           damageToDeal = 1;
         }
@@ -751,7 +751,7 @@ export function applyHermitCard(
         characterName: target.character.name,
         alignment: target.character.alignment
       };
-      logs.push(createLog(`🤫 [Dự Đoán Của Ẩn Sĩ] ${target.name} buộc phải cho ${source.name} xem thân phận bí mật của mình.`, "action"));
+      logs.push(createLog(`🤫 ${target.name} buộc phải cho ${source.name} xem thân phận bí mật của mình.`, "action"));
       break;
   }
 
@@ -761,7 +761,7 @@ export function applyHermitCard(
     // Unknown nói dối: bỏ qua hiệu ứng tiêu cực/tích cực mà không ai biết
     logs.push(createLog(`🎭 [Nói Dối Unknown] ${target.name} khéo léo đọc mật thư và âm thầm nói dối, bỏ qua mọi hiệu ứng mà không lộ thân phận!`, "action"));
   } else if (matches) {
-    logs.push(createLog(`✉️ ${source.name} đã chuyển mật thư Ẩn Sĩ cho ${target.name}.`, "card"));
+    logs.push(createLog(`✉️ ${source.name} đã đưa một Hermit Card cho ${target.name}.`, "card"));
     if (damageToDeal > 0) {
       // Đầm sát thương
       target.currentHp = Math.max(0, target.currentHp - damageToDeal);
@@ -776,7 +776,7 @@ export function applyHermitCard(
       logs.push(createLog(`💖 Mật thư chúc lành! ${target.name} âm thầm hồi lại ${healToDeal} HP.`, "action"));
     }
   } else {
-    logs.push(createLog(`✉️ ${source.name} đã chuyển mật thư Ẩn Sĩ cho ${target.name}. ${target.name} đọc xong rồi lặng lẽ cất đi, không có phản ứng đặc biệt gì xảy ra.`, "action"));
+    logs.push(createLog(`✉️ ${source.name} đã đưa một Hermit Card cho ${target.name}. Không có phản ứng đặc biệt.`, "action"));
   }
 
   // Check victory after damage
