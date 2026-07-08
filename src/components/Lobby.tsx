@@ -125,7 +125,7 @@ export default function Lobby({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-6 font-sans relative z-10 flex flex-col items-center">
+    <div className="w-full max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 font-sans relative z-10 flex flex-col items-center">
 
       {/* BACKGROUND DECORATIONS (FIXED UNDERLAY) */}
       <div className="fixed inset-0 z-[-1] overflow-hidden">
@@ -203,7 +203,7 @@ export default function Lobby({
         </div>
       ) : (
         /* ================= MÀN HÌNH CHỌN START (KHÔNG CÓ DIV ĐÓNG GÓI, TỐI ƯU CHIỀU RỘNG & CHIỀU CAO) ================= */
-        <div className="w-full max-w-5xl flex-1 flex flex-col justify-between min-h-[75vh] relative animate-fadeIn px-4 sm:px-6">
+        <div className="w-full max-w-5xl flex-1 flex flex-col justify-between min-h-[75vh] relative animate-fadeIn px-0 sm:px-6">
 
           {/* Error message floating warning if any */}
           {errorMsg && (
@@ -215,24 +215,24 @@ export default function Lobby({
           <div className="flex-1 flex flex-col justify-between">
 
             {/* Header: Title and Back button */}
-            <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-6">
+            <div className="flex items-center gap-3 border-b border-white/5 pb-3 sm:pb-4 mb-4 sm:mb-6">
               <button
                 onClick={() => { setLobbyView("home"); setErrorMsg(""); }}
-                className="p-2.5 bg-[#030408]/60 border border-[#4437ac]/40 hover:border-[#7ba2be]/60 text-[#7ba2be] hover:text-white rounded-xl transition-all cursor-pointer shadow-lg active:scale-95"
+                className="shrink-0 p-2.5 bg-[#030408]/60 border border-[#4437ac]/40 hover:border-[#7ba2be]/60 text-[#7ba2be] hover:text-white rounded-xl transition-all cursor-pointer shadow-lg active:scale-95"
                 title="Quay lại trang chủ"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <h2 className="text-xl sm:text-2xl font-black text-[#7ba2be] uppercase tracking-widest text-right filter drop-shadow-[0_2px_8px_rgba(68,55,172,0.4)]">
+              <h2 className="flex-1 text-lg sm:text-2xl font-black text-[#7ba2be] uppercase tracking-widest text-right filter drop-shadow-[0_2px_8px_rgba(68,55,172,0.4)] leading-tight">
                 DANH SÁCH PHÒNG CHỜ
               </h2>
             </div>
 
             {/* Grid layout to distribute contents: 2 Columns on desktop, 1 on mobile */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 flex-1 items-stretch mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 lg:gap-12 flex-1 items-stretch mb-4 sm:mb-6">
 
               {/* Column 1: List of public rooms (Occupies full height available) */}
-              <div className="flex flex-col bg-[#0a0c16]/50 backdrop-blur-md border border-[#4437ac]/20 rounded-3xl p-5 sm:p-6 flex-1 shadow-[0_0_20px_rgba(68,55,172,0.1)]">
+              <div className="flex flex-col bg-[#0a0c16]/50 backdrop-blur-md border border-[#4437ac]/20 rounded-3xl p-3.5 sm:p-6 flex-1 shadow-[0_0_20px_rgba(68,55,172,0.1)]">
                 <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-4">
                   <span className="text-xs font-black text-[#7ba2be] uppercase tracking-widest flex items-center gap-1.5">
                     <Globe className="w-4 h-4 text-[#7ba2be]" />
@@ -257,25 +257,31 @@ export default function Lobby({
                     <span className="text-xs text-neutral-500 italic">Chưa có phòng chơi nào trực tuyến. Hãy tạo phòng mới ngay!</span>
                   </div>
                 ) : (
-                  <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin max-h-[320px] lg:max-h-[420px]">
+                  <div className="flex-1 overflow-y-auto space-y-2 sm:space-y-3 pr-1 scrollbar-thin max-h-[220px] sm:max-h-[320px] lg:max-h-[420px]">
                     {publicRooms.map((room) => (
                       <div
                         key={room.roomId}
-                        className="p-4 bg-[#0a0c16]/85 border border-[#4437ac]/30 hover:border-[#7ba2be]/60 rounded-2xl flex items-center justify-between hover:shadow-[0_0_15px_rgba(68,55,172,0.2)] transition-all group"
+                        className="p-3 sm:p-4 bg-[#0a0c16]/85 border border-[#4437ac]/30 hover:border-[#7ba2be]/60 rounded-2xl flex items-center gap-2 justify-between hover:shadow-[0_0_15px_rgba(68,55,172,0.2)] transition-all group"
                       >
-                        <div className="leading-tight">
+                        <div className="leading-tight min-w-0 flex-1">
                           <span className="text-sm font-black tracking-widest text-[#7ba2be] block">
                             #{room.roomId}
                           </span>
-                          <span className="text-xs text-neutral-400 font-semibold mt-1 block">
-                            Người chơi: <strong className="text-white">{room.players?.length || 0}/12</strong> • Chủ phòng: <strong className="text-white">{room.players?.[0]?.name || "Ẩn danh"}</strong>
+                          <span className="text-[11px] sm:text-xs text-neutral-400 font-semibold mt-0.5 block truncate">
+                            Người chơi: <strong className="text-white">{room.players?.length || 0}/12</strong>
+                            <span className="hidden xs:inline"> • Chủ phòng: <strong className="text-white">{room.players?.[0]?.name || "Ẩn danh"}</strong></span>
+                          </span>
+                          <span className="xs:hidden text-[10px] text-neutral-500 truncate block">
+                            Chủ: <strong className="text-neutral-300">{room.players?.[0]?.name || "Ẩn danh"}</strong>
                           </span>
                         </div>
                         <button
                           onClick={() => handleStartJoinFlow(room.roomId)}
-                          className="px-4 py-2 bg-[#4437ac] hover:bg-[#7ba2be] hover:shadow-[0_0_15px_rgba(123,162,190,0.4)] text-xs font-black rounded-xl text-white transition-all cursor-pointer active:scale-95"
+                          className="shrink-0 px-3 sm:px-4 py-2 bg-[#4437ac] hover:bg-[#7ba2be] hover:shadow-[0_0_15px_rgba(123,162,190,0.4)] text-xs font-black rounded-xl text-white transition-all cursor-pointer active:scale-95"
                         >
-                          VÀO PHÒNG
+                          VÀO
+                          <br className="hidden sm:block" />
+                          <span className="hidden sm:inline">PHÒNG</span>
                         </button>
                       </div>
                     ))}
@@ -287,40 +293,40 @@ export default function Lobby({
               <div className="flex flex-col justify-start space-y-6">
 
                 {/* Section 2.1: Join with room code */}
-                <div className="bg-[#0a0c16]/50 backdrop-blur-md border border-[#4437ac]/20 rounded-3xl p-5 sm:p-6 shadow-[0_0_20px_rgba(68,55,172,0.1)] space-y-4">
+                <div className="bg-[#0a0c16]/50 backdrop-blur-md border border-[#4437ac]/20 rounded-3xl p-3.5 sm:p-6 shadow-[0_0_20px_rgba(68,55,172,0.1)] space-y-3 sm:space-y-4">
                   <label className="block text-xs font-black text-[#7ba2be] uppercase tracking-widest">
                     Vào bằng mã phòng chơi
                   </label>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     <input
                       type="text"
                       value={roomIdInput}
                       onChange={(e) => setRoomIdInput(e.target.value.toUpperCase())}
                       placeholder="MÃ PHÒNG (VD: ABCDE)"
                       maxLength={5}
-                      className="flex-1 px-4 py-3 bg-[#030408]/90 border border-[#4437ac]/45 rounded-xl text-white text-center font-black tracking-widest text-sm placeholder-neutral-750 focus:outline-none focus:ring-1 focus:ring-[#7ba2be] focus:border-[#7ba2be]"
+                      className="flex-1 min-w-0 px-3 sm:px-4 py-3 bg-[#030408]/90 border border-[#4437ac]/45 rounded-xl text-white text-center font-black tracking-widest text-sm placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-[#7ba2be] focus:border-[#7ba2be]"
                     />
                     <button
                       onClick={() => handleStartJoinFlow(roomIdInput)}
                       disabled={submitting}
-                      className="px-6 bg-[#4437ac] hover:bg-[#7ba2be] disabled:opacity-50 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center shadow-lg active:scale-95"
+                      className="shrink-0 px-4 sm:px-6 py-3 bg-[#4437ac] hover:bg-[#7ba2be] disabled:opacity-50 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center shadow-lg active:scale-95"
                     >
-                      Vào phòng
+                      VÀO PHÒNG
                     </button>
                   </div>
                 </div>
 
                 {/* Section 2.2: Create new room */}
-                <div className="bg-[#0a0c16]/50 backdrop-blur-md border border-[#4437ac]/20 rounded-3xl p-5 sm:p-6 shadow-[0_0_20px_rgba(68,55,172,0.1)] space-y-4">
+                <div className="bg-[#0a0c16]/50 backdrop-blur-md border border-[#4437ac]/20 rounded-3xl p-3.5 sm:p-6 shadow-[0_0_20px_rgba(68,55,172,0.1)] space-y-3 sm:space-y-4">
                   <span className="block text-xs font-black text-[#7ba2be] uppercase tracking-widest">
                     Thiết lập trận đấu trực tuyến
                   </span>
 
-                  <div className="flex items-center justify-between bg-[#030408]/75 px-4 py-3 rounded-xl border border-[#4437ac]/30">
-                    <span className="text-xs text-neutral-400 font-bold uppercase tracking-wider">Trạng thái phòng:</span>
+                  <div className="flex items-center gap-2 justify-between bg-[#030408]/75 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-[#4437ac]/30">
+                    <span className="text-[11px] sm:text-xs text-neutral-400 font-bold uppercase tracking-wider shrink-0">Trạng thái phòng:</span>
                     <button
                       onClick={() => setIsPublicRoom(!isPublicRoom)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${isPublicRoom
+                      className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer shrink-0 ${isPublicRoom
                         ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                         : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                         }`}
@@ -333,7 +339,7 @@ export default function Lobby({
                   <button
                     onClick={handleStartCreateFlow}
                     disabled={submitting}
-                    className="w-full py-4 bg-[#4437ac] hover:bg-[#7ba2be] hover:shadow-[0_0_20px_rgba(123,162,190,0.4)] disabled:opacity-50 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-98"
+                    className="w-full py-3.5 sm:py-4 bg-[#4437ac] hover:bg-[#7ba2be] hover:shadow-[0_0_20px_rgba(123,162,190,0.4)] disabled:opacity-50 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-98"
                   >
                     <Plus className="w-4 h-4 text-white" />
                     Tạo phòng chơi mới
