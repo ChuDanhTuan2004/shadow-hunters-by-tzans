@@ -11,3 +11,22 @@ body, button, input, select, textarea {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
+
+/* =============================================
+   Play Screen Background – Mobile first
+   ============================================= */
+.bg-play-screen {
+  background-image: url('/assets/images/bg/bg-play-mobile.png');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: local;
+}
+
+/* Desktop (lg: 1024px+) – switch to wide horizontal background */
+@media (min-width: 1024px) {
+  .bg-play-screen {
+    background-image: url('/assets/images/bg/bg-play-pc.png');
+    background-position: center center;
+  }
+}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Skull, Bot, User } from "lucide-react";
+import { Skull, Bot, User, Shield } from "lucide-react";
 import { Alignment, GameState, Player } from "../types";
 
 interface PlayerListSidebarProps {
@@ -56,6 +56,13 @@ export default function PlayerListSidebar({
                       <User className="w-3.5 h-3.5" style={{ color: p.color }} />
                     )}
                   </div>
+                  {(p.hasGuardianAngel || p.hasGregorShield) && !p.isDead && (
+                    <div className="absolute -top-1 -right-1 z-10">
+                      <Shield className={`w-3 h-3 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)] ${
+                        p.hasGuardianAngel ? "text-amber-400" : "text-cyan-400"
+                      }`} />
+                    </div>
+                  )}
                   <div
                     className={`absolute -bottom-1 left-1/2 -translate-x-1/2 px-0.5 py-0 rounded text-[7px] font-extrabold border shadow-sm whitespace-nowrap leading-none ${
                       p.isDead
@@ -142,6 +149,14 @@ export default function PlayerListSidebar({
                       <User className="w-5 h-5" style={{ color: p.color }} />
                     )}
                   </div>
+
+                  {(p.hasGuardianAngel || p.hasGregorShield) && !p.isDead && (
+                    <div className="absolute -top-1 -right-1 z-10">
+                      <Shield className={`w-4 h-4 drop-shadow-[0_0_5px_rgba(251,191,36,0.6)] ${
+                        p.hasGuardianAngel ? "text-amber-400" : "text-cyan-400"
+                      }`} />
+                    </div>
+                  )}
 
                   {/* Damage Taken Badge */}
                   <div

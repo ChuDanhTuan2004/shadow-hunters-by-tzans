@@ -115,7 +115,7 @@ export default function App() {
   const selectedGateDeck = activeGame?.selectedGateDeck || null;
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-gray-100 flex flex-col selection:bg-rose-500/30 selection:text-white">
+    <div className="min-h-screen bg-neutral-950 text-gray-100 flex flex-col selection:bg-rose-500/30 selection:text-white relative">
 
       {/* HEADER TOPBAR */}
       {"playing" !== view && "lobby" !== view && "waiting_room" !== view && (
@@ -137,7 +137,7 @@ export default function App() {
       )}
 
       {/* CHÍNH DIỆN TRANG CHỦ */}
-      <main className={"playing" === view ? "flex-1 w-full p-4 sm:p-6 flex flex-col justify-center" : "flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center"}>
+      <main className={"playing" === view ? "flex-1 w-full flex flex-col" : "flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center"}>
 
         {/* VIEW 1: LOBBY */}
         {view === "lobby" && (
@@ -193,17 +193,16 @@ export default function App() {
 
         {/* VIEW 3: TRONG TRẬN ĐẤU (PLAYING) - GIAO DIỆN MỚI THEO HÌNH ẢNH MOCKUP */}
         {"playing" === view && activeGame && (
-          <div className="flex flex-col items-stretch w-full flex-1 gap-6">
+          <div className="bg-play-screen flex flex-col items-stretch w-full flex-1 gap-6 relative min-h-screen p-4 sm:p-6">
+            {/* Dark overlay for readability */}
+            <div className="absolute inset-0 bg-neutral-950/60 pointer-events-none z-0" />
 
             {/* TOP BAR */}
-            <div className="flex items-center justify-between gap-4 border-b border-neutral-900 pb-4 w-full">
+            <div className="relative z-10 flex items-center justify-between gap-4 border-b border-neutral-800/60 pb-4 w-full">
               {/* Left Logo Title */}
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-xs font-extrabold tracking-tight text-white uppercase sm:text-base">
                   Shadow Hunters
-                </span>
-                <span className="hidden sm:inline text-[9px] text-[#7BA2BE] font-bold bg-[#7BA2BE]/10 border border-[#7BA2BE]/20 px-1.5 py-0.5 rounded">
-                  Bản Sắc Việt Hóa 🇻🇳
                 </span>
               </div>
 
@@ -286,7 +285,7 @@ export default function App() {
                 info: "ℹ️"
               };
               return (
-                <div className="col-span-full w-full">
+                 <div className="col-span-full w-full relative z-10">
                   <div
                     onClick={() => setShowHistoryDialog(true)}
                     className={`px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border text-[10px] sm:text-xs font-semibold flex items-center gap-2 shadow-sm cursor-pointer ${logTypeStyles[latestLog.type] || "bg-neutral-950/60 border-l border-neutral-800 text-neutral-300 hover:bg-neutral-900/60 transition-colors"}`}
@@ -299,7 +298,7 @@ export default function App() {
             })()}
 
             {/* Main view container */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 lg:gap-6 items-stretch w-full flex-1">
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-2.5 lg:gap-6 items-stretch w-full flex-1">
 
               {/* Left Column (3/12): Player list */}
               <PlayerListSidebar

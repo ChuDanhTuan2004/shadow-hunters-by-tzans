@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Users, User, Shield, Globe, Lock, Play, Plus, ArrowRight, RefreshCw, Bot, Sparkles, MessageSquare, BookOpen, ArrowLeft } from "lucide-react";
 import { createGameRoom, joinGameRoom, getPublicRooms } from "../firebase";
 
-import bgPc from "../../assets/images/bg-pc-compressed.png";
-import bgMobile from "../../assets/images/bg-mobile-compressed.png";
+import bgPc from "../../assets/images/bg/bg-pc-compressed.png";
+import bgMobile from "../../assets/images/bg/bg-mobile-compressed.png";
 
 interface LobbyProps {
   playerId: string;

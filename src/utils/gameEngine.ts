@@ -1750,7 +1750,9 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
       }
     }
 
-    updatedState.phase = "attack";
+    if (updatedState.roundNumber !== 1) {
+      updatedState.phase = "attack";
+    }
   }
 
   // 3. GIAI ĐOẠN TẤN CÔNG ĐỐI THỦ
