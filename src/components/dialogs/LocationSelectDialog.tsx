@@ -50,18 +50,18 @@ export default function LocationSelectDialog({
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
-      <div className="bg-neutral-900 border border-neutral-800 p-6 rounded-2xl w-full max-w-4xl shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto scrollbar-thin">
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 animate-fadeIn">
+      <div className="bg-neutral-900 border border-neutral-800 p-3 sm:p-6 rounded-2xl w-full max-w-4xl shadow-2xl space-y-3 sm:space-y-5 max-h-[95vh] sm:max-h-[92vh] overflow-y-auto scrollbar-thin">
         <div className="text-center space-y-1">
           {compassChoices !== null ? (
             <>
               <span className="text-[9px] border px-2.5 py-0.5 rounded-full font-bold uppercase tracking-widest bg-[#7BA2BE]/10 text-[#7BA2BE] border-[#7BA2BE]/20">
                 La Bàn Thần Bí (Mystic Compass)
               </span>
-              <h3 className="text-lg font-bold text-white tracking-tight pt-1">
+              <h3 className="text-sm sm:text-lg font-bold text-white tracking-tight pt-1">
                 Di Chuyển Bằng La Bàn Thần Bí
               </h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-neutral-400 leading-relaxed">
                 Hãy chọn 1 trong 2 địa điểm được xác định bởi kết quả lắc xúc xắc của La Bàn Thần Bí!
               </p>
             </>
@@ -70,10 +70,10 @@ export default function LocationSelectDialog({
               <span className="text-[9px] border px-2.5 py-0.5 rounded-full font-bold uppercase tracking-widest bg-orange-500/10 text-orange-400 border-orange-500/20">
                 Cổng Dịch Chuyển Bóng Tối
               </span>
-              <h3 className="text-lg font-bold text-white tracking-tight pt-1">
+              <h3 className="text-sm sm:text-lg font-bold text-white tracking-tight pt-1">
                 Dịch Chuyển Cổng Bóng Tối
               </h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-neutral-400 leading-relaxed">
                 Hãy click chọn 1 địa điểm bất kỳ dưới đây để dịch chuyển token đến đó! (Trừ vị trí hiện tại của bạn)
               </p>
             </>
@@ -84,12 +84,12 @@ export default function LocationSelectDialog({
                   ? "Dịch Chuyển Tức Thời (Emi)"
                   : "Đổ Ra Số 7 May Mắn"}
               </span>
-              <h3 className="text-lg font-bold text-white tracking-tight pt-1">
+              <h3 className="text-sm sm:text-lg font-bold text-white tracking-tight pt-1">
                 {activeGame.players[activeGame.turnIndex]?.character.name.startsWith("Emi") && true === activeGame.players[activeGame.turnIndex]?.alignmentRevealed && false === activeGame.players[activeGame.turnIndex]?.abilityDisabled
                   ? "Chọn Điểm Dịch Chuyển Của Emi"
                   : "Chọn Điểm Dịch Chuyển Tự Do"}
               </h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-neutral-400 leading-relaxed">
                 Hãy click chọn 1 địa điểm bất kỳ dưới đây để dịch chuyển token đến đó! (Trừ vị trí hiện tại của bạn)
               </p>
             </>
@@ -97,9 +97,9 @@ export default function LocationSelectDialog({
         </div>
 
         {/* THÔNG TIN VỊ TRÍ HIỆN TẠI & NGƯỜI CHƠI CHƯA DI CHUYỂN */}
-        <div className="bg-neutral-950 p-3.5 rounded-xl border border-neutral-800 text-[11px] space-y-2 text-left font-sans shadow-inner">
+        <div className="bg-neutral-950 p-2.5 sm:p-3.5 rounded-xl border border-neutral-800 text-[11px] space-y-2 text-left font-sans shadow-inner">
           {currentLoc ? (
-            <div className="flex flex-wrap items-center justify-between gap-1">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-0.5 sm:gap-1">
               <span className="text-neutral-400 font-medium">
                 📍 Vị trí hiện tại của bạn: <strong className="text-[#7BA2BE]">{currentLoc.name}</strong>
               </span>
@@ -118,7 +118,7 @@ export default function LocationSelectDialog({
           )}
 
           {unmovedPlayers.length > 0 && (
-            <div className="text-neutral-400 pt-1.5 border-t border-neutral-900 flex items-center justify-between">
+            <div className="text-neutral-400 pt-1.5 border-t border-neutral-900 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-0">
               <span className="text-[10px] font-medium text-neutral-500">👥 Chưa di chuyển (chờ lượt 1):</span>
               <span className="text-amber-300 font-bold text-[10px]">{unmovedPlayers.map(p => p.name).join(", ")}</span>
             </div>
@@ -126,9 +126,9 @@ export default function LocationSelectDialog({
         </div>
 
         {/* LƯỚI 3 CỘT - GIỮ NGUYÊN CẤU TRÚC CẶP ĐÔI NHƯ BẢNG CHƠI */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
           {areaGroups.map(group => (
-            <div key={group.label} className={`rounded-xl border p-3 space-y-3 ${group.color}`}>
+            <div key={group.label} className={`rounded-xl border p-2.5 sm:p-3 space-y-2 sm:space-y-3 ${group.color}`}>
               {/* Area header */}
               <div className="flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full ${group.dot}`} />
@@ -153,7 +153,7 @@ export default function LocationSelectDialog({
                     return (
                       <div
                         key={locId}
-                        className="p-3 rounded-lg bg-neutral-950/60 border border-neutral-700 opacity-50 cursor-not-allowed space-y-1.5 text-left"
+                        className="p-2.5 sm:p-3 rounded-lg bg-neutral-950/60 border border-neutral-700 opacity-50 cursor-not-allowed space-y-1.5 text-left"
                       >
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-[11px] text-neutral-400 line-through">{loc.name}</span>
@@ -170,7 +170,7 @@ export default function LocationSelectDialog({
                     <button
                       key={locId}
                       onClick={() => onSelect(locId)}
-                      className="w-full p-3 bg-neutral-950 hover:bg-[#4437AC]/20 border border-neutral-800 hover:border-[#7BA2BE]/40 rounded-lg text-left text-white transition-all space-y-1.5 group cursor-pointer"
+                      className="w-full p-2.5 sm:p-3 bg-neutral-950 hover:bg-[#4437AC]/20 border border-neutral-800 hover:border-[#7BA2BE]/40 rounded-lg text-left text-white transition-all space-y-1.5 group cursor-pointer active:scale-[0.98]"
                     >
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-[11px] text-white group-hover:text-[#7BA2BE] transition-colors">
