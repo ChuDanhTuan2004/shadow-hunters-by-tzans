@@ -961,13 +961,11 @@ export function useGameplay({
       }
     }
 
-    if (nextPlayer.character.name.startsWith("George")) {
+    if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David")) {
       nextState.players = nextState.players.map(p =>
         p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
       );
     }
-
-
 
     return nextState;
   };

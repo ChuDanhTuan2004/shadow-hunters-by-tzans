@@ -117,15 +117,15 @@ export const CHARACTERS: Character[] = [
   {
     name: "Bob (Kẻ Trộm Mộ)",
     alignment: Alignment.NEUTRAL,
-    hp: 10,
+    hp: 11,
     abilityName: "Trộm trang bị",
     abilityDesc: "Khi gây ≥2 sát thương bằng đòn tấn công thường: Có thể cướp 1 trang bị của mục tiêu thay vì gây sát thương.",
-    winCondition: "Sở hữu từ 5 trang bị trở lên."
+    winCondition: "Sở hữu từ 3 trang bị trở lên."
   },
   {
     name: "Charles (Kiếm Sĩ Cuồng Nộ)",
     alignment: Alignment.NEUTRAL,
-    hp: 11,
+    hp: 16,
     abilityName: "Chém đôi cuồng nộ",
     abilityDesc: "Sau khi tấn công, bạn có thể tự nhận 2 sát thương để tấn công lại cùng mục tiêu đó.",
     winCondition: "Đòn tấn công của bạn tiêu diệt người chơi thứ 3 trở đi."
@@ -133,7 +133,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Daniel (Linh Hồn U Uất)",
     alignment: Alignment.NEUTRAL,
-    hp: 13,
+    hp: 12,
     abilityName: "Trăn trối oán hận",
     abilityDesc: "Khi có bất kỳ người chơi nào chết, bạn bắt buộc phải lật ngửa thân phận. Bạn không được tự lật ngửa ở các thời điểm khác.",
     winCondition: "Là người chết đầu tiên trong trận, hoặc sống sót và phe Hunter thắng."
@@ -141,7 +141,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Agnes (Kẻ Hai Mặt)",
     alignment: Alignment.NEUTRAL,
-    hp: 8,
+    hp: 10,
     abilityName: "Đảo chiều số phận",
     abilityDesc: "Một lần trong trận (khi đã tiết lộ thân phận): Đổi điều kiện thắng thành người chơi bên dưới bạn (theo thứ tự vòng chơi) thắng.",
     winCondition: "Người chơi bên trên bạn (theo thứ tự vòng chơi) giành chiến thắng."
@@ -149,7 +149,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Bryan (Sát Thủ Thầm Lặng)",
     alignment: Alignment.NEUTRAL,
-    hp: 10,
+    hp: 12,
     abilityName: "Ngụy trang bại lộ",
     abilityDesc: "Nếu đòn tấn công của bạn tiêu diệt người chơi có HP tối đa ≤ 12: Bạn bắt buộc phải lập tức lật ngửa thân phận.",
     winCondition: "Tấn công tiêu diệt người chơi có HP tối đa ≥ 13, hoặc đang đứng ở Bàn Thờ Cổ (Erstwhile Altar) khi trận đấu kết thúc."
@@ -166,8 +166,8 @@ export const CHARACTERS: Character[] = [
     name: "David (Kẻ Thu Thập Thánh Vật)",
     alignment: Alignment.NEUTRAL,
     hp: 13,
-    abilityName: "Đào mộ thánh tích",
-    abilityDesc: "Một lần trong trận (khi đã tiết lộ thân phận): Cướp lấy 1 trang bị bất kỳ từ một người chơi đã tử vong.",
+    abilityName: "Thu thập thánh vật",
+    abilityDesc: "Không giới hạn số lần dùng kỹ năng, thực hiện kỹ năng ở đầu lượt: Cướp lấy 1 trang bị bất kỳ từ một người chơi nào còn sống.",
     winCondition: "Sở hữu ít nhất 3 trong số các trang bị sau: Cài Áo May Mắn, Thương Longinus, Áo Choàng Thánh, Chuỗi Hạt Bạc."
   }
 ];

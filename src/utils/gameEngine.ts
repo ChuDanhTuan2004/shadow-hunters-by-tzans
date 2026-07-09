@@ -337,8 +337,8 @@ export function checkVictory(players: Player[]): VictoryResult | null {
     if (Alignment.NEUTRAL !== p.character.alignment) continue;
     const charName = p.character.name;
 
-    // Bob có >= 5 trang bị
-    if (charName.startsWith("Bob") && 5 <= p.equipments.length) {
+    // Bob có >= 3 trang bị
+    if (charName.startsWith("Bob") && 3 <= p.equipments.length) {
       neutralInstantWin = true;
     }
     // Charles diệt >= 3 người
@@ -405,7 +405,7 @@ export function checkVictory(players: Player[]): VictoryResult | null {
     if (charName.startsWith("Allie")) {
       neutralWon = false === p.isDead;
     } else if (charName.startsWith("Bob")) {
-      neutralWon = 5 <= p.equipments.length;
+      neutralWon = 3 <= p.equipments.length;
     } else if (charName.startsWith("Charles")) {
       neutralWon = 3 <= (p.killsCount || 0);
     } else if (charName.startsWith("Daniel")) {
@@ -1419,20 +1419,20 @@ export function activateCharacterAbility(
     if (!player.hasUsedAbility && !player.abilityDisabled) {
       if (targetPlayerId) {
         const parts = targetPlayerId.split(":");
-        const deadPlayerId = parts[0];
+        const targetId = parts[0];
         const equipId = parts[1];
 
-        const deadPlayer = updatedPlayers.find(p => p.id === deadPlayerId && p.isDead);
-        if (deadPlayer && deadPlayer.equipments.includes(equipId)) {
-          deadPlayer.equipments = deadPlayer.equipments.filter(e => e !== equipId);
+        const targetPlayer = updatedPlayers.find(p => p.id === targetId && !p.isDead);
+        if (targetPlayer && targetPlayer.equipments.includes(equipId)) {
+          targetPlayer.equipments = targetPlayer.equipments.filter(e => e !== equipId);
           player.equipments = [...player.equipments, equipId];
           player.hasUsedAbility = true;
 
           const card = getCardById(equipId);
           const cardName = card ? card.name : "Trang bị";
-          logs.push(createLog(`🪦 [Đào Mộ Thánh Tích] David [${player.name}] kích hoạt đặc kỹ đào mộ, cướp trang bị [${cardName}] từ thi thể của ${deadPlayer.name}!`, "action"));
+          logs.push(createLog(`🪦 [Thu Thập Thánh Vật] David [${player.name}] kích hoạt đặc kỹ thu thập thánh vật, cướp trang bị [${cardName}] từ ${targetPlayer.name}!`, "action"));
         } else {
-          logs.push(createLog(`⚠️ Không tìm thấy trang bị hợp lệ trên thi thể người chết!`, "system"));
+          logs.push(createLog(`⚠️ Không tìm thấy trang bị hợp lệ trên người chơi mục tiêu!`, "system"));
         }
       } else {
         logs.push(createLog(`⚠️ David cần chọn mục tiêu để cướp trang bị!`, "system"));
@@ -1440,7 +1440,7 @@ export function activateCharacterAbility(
     } else if (player.abilityDisabled) {
       logs.push(createLog(`⚠️ Kỹ năng của ${player.name} đã bị phiếng ấn vĩnh viễn bởi Ellen!`, "system"));
     } else {
-      logs.push(createLog(`⚠️ David đã sử dụng tuyệt kỹ đào mộ trước đó rồi!`, "system"));
+      logs.push(createLog(`⚠️ David đã sử dụng tuyệt kỹ thu thập thánh vật trước đó rồi!`, "system"));
     }
   } else if (charName.startsWith("Wight")) {
     // Wight: một lần trong game - thêm số lượt = số người đã chết
@@ -1565,6 +1565,23 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
 
   // 1. GIAI ĐOẠN ĐỔ XÚC XẮC DI CHUYỂN
   if (updatedState.phase === "roll") {
+    // Tự động kích hoạt David: Thu thập thánh vật đầu lượt trước khi lắc xúc xắc di chuyển
+    if (botChar.startsWith("David") && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
+      const aliveWithEquips = updatedState.players.filter(p => !p.isDead && p.id !== botId && p.equipments.length > 0);
+      if (aliveWithEquips.length > 0) {
+        const victim = aliveWithEquips[Math.floor(Math.random() * aliveWithEquips.length)];
+        const equip = victim.equipments[Math.floor(Math.random() * victim.equipments.length)];
+        updatedState = activateCharacterAbility(updatedState, botId, `${victim.id}:${equip}`);
+        
+        // Cập nhật lại đối tượng currentBot trong bộ nhớ tạm
+        const ref = updatedState.players.find(p => p.id === botId);
+        if (ref) {
+          currentBot.hasUsedAbility = ref.hasUsedAbility;
+          currentBot.equipments = ref.equipments;
+          currentBot.alignmentRevealed = ref.alignmentRevealed;
+        }
+      }
+    }
 
     // Unknown: Bot không di chuyển (Nói dối - ẩn danh hoàn toàn, không cần lật thân phận)
     const canUseUnknown = botChar.startsWith("Unknown") && !currentBot.abilityDisabled;
@@ -1906,15 +1923,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
         updatedState = activateCharacterAbility(updatedState, botId);
       }
     }
-    // Tự động kích hoạt David đào mộ thánh tích từ thi thể người chết
-    if (botChar.startsWith("David") && !currentBot.hasUsedAbility) {
-      const deadWithEquips = updatedState.players.filter(p => p.isDead && p.equipments.length > 0);
-      if (deadWithEquips.length > 0) {
-        const victim = deadWithEquips[Math.floor(Math.random() * deadWithEquips.length)];
-        const equip = victim.equipments[Math.floor(Math.random() * victim.equipments.length)];
-        updatedState = activateCharacterAbility(updatedState, botId, `${victim.id}:${equip}`);
-      }
-    }
+
     // Tự động kích hoạt Wight lượt bổ sung nếu đã có người chết và chưa dùng skill
     if (botChar.startsWith("Wight") && !currentBot.hasUsedAbility) {
       const deadCount = updatedState.players.filter(p => p.isDead).length;
@@ -2067,8 +2076,8 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
           }
         }
 
-        // George: đầu lượt reset trạng thái sử dụng kỹ năng để bắn được mỗi lượt
-        if (nextPlayer.character.name.startsWith("George")) {
+        // George, David: đầu lượt reset trạng thái sử dụng kỹ năng
+        if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David")) {
           updatedState.players = updatedState.players.map(p =>
             p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
           );

@@ -275,17 +275,17 @@ export default function ActionControls({
             </div>
           )}
 
-          {/* Kỹ năng David: Đào Mộ Thánh Tích */}
+          {/* Kỹ năng David: Thu thập thánh vật */}
           {(() => {
-            const isDavid = currentTurnPlayer.character.name.startsWith("David") && currentTurnPlayer.alignmentRevealed && !currentTurnPlayer.hasUsedAbility && !currentTurnPlayer.abilityDisabled;
-            const deadPlayersWithEquips = activeGame.players.filter(p => p.isDead && p.equipments.length > 0);
+            const isDavid = currentTurnPlayer.character.name.startsWith("David") && currentTurnPlayer.alignmentRevealed && !currentTurnPlayer.hasUsedAbility && !currentTurnPlayer.abilityDisabled && "roll" === activeGame.phase;
+            const alivePlayersWithEquips = activeGame.players.filter(p => !p.isDead && p.id !== currentTurnPlayer.id && p.equipments.length > 0);
 
-            if (!isDavid || deadPlayersWithEquips.length === 0) return null;
+            if (!isDavid || alivePlayersWithEquips.length === 0) return null;
 
             return (
               <div className="mb-4 bg-neutral-950 border border-neutral-850 p-4 rounded-xl shadow space-y-2.5 max-w-sm w-full text-left mx-auto animate-fadeIn">
                 <span className="text-[10px] font-bold text-amber-400 uppercase block tracking-wider">
-                  🪦 Kỹ năng: Đào Mộ Thánh Tích
+                  🪦 Kỹ năng: Thu thập thánh vật
                 </span>
                 <div className="space-y-2">
                   <select
@@ -296,8 +296,8 @@ export default function ActionControls({
                     }}
                     className="w-full px-2.5 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none cursor-pointer"
                   >
-                    <option value="">-- Chọn thi thể người chết --</option>
-                    {deadPlayersWithEquips.map((p) => (
+                    <option value="">-- Chọn người chơi còn sống --</option>
+                    {alivePlayersWithEquips.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name} ({p.equipments.length} trang bị)
                       </option>
@@ -335,7 +335,7 @@ export default function ActionControls({
                     disabled={!activeDavidTargetId || !activeDavidCardId}
                     className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-30 rounded-lg text-xs font-bold text-white transition-all shadow cursor-pointer text-center"
                   >
-                    Xác Nhận Đào Mộ
+                    Xác Nhận Cướp Trang Bị
                   </button>
                 </div>
               </div>
