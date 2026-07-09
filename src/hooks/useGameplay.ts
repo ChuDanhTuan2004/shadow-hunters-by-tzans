@@ -102,11 +102,11 @@ export function useGameplay({
   const getTurnIndex = () => (activeGame ? activeGame.turnIndex : 0);
 
   // 1. Khởi tạo Game Solo
-  const handleStartSoloGame = () => {
+  const handleStartSoloGame = (selectedCharName?: string, playerCount: number = 3, selectedAlignment?: Alignment | "RANDOM") => {
     const initialPlayers = [
       { id: playerId, name: playerName || "Chiến binh vô danh", isBot: false }
     ];
-    const initialGame = initGame(initialPlayers);
+    const initialGame = initGame(initialPlayers, selectedCharName, playerCount, selectedAlignment);
     setGameMode("solo");
     setActiveGame(initialGame);
     setView("playing");

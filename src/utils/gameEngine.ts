@@ -70,10 +70,15 @@ export function assignCharactersForPlayers(count: number): Character[] {
 /**
  * Khởi tạo một trận đấu mới
  */
-export function initGame(playersInLobby: { id: string; name: string; isBot: boolean }[]): GameState {
+export function initGame(
+  playersInLobby: { id: string; name: string; isBot: boolean }[],
+  selectedCharName?: string,
+  playerCount: number = 3,
+  selectedAlignment?: Alignment | "RANDOM"
+): GameState {
   const finalPlayersList = [...playersInLobby];
 
-  // Đảm bảo có ít nhất 3 người chơi bằng cách thêm Bot
+  // Đảm bảo có ít nhất playerCount người chơi bằng cách thêm Bot
   const botColors = [
     "#EF4444", "#3B82F6", "#10B981", "#F59E0B",
     "#8B5CF6", "#EC4899", "#14B8A6", "#6B7280",
@@ -81,7 +86,9 @@ export function initGame(playersInLobby: { id: string; name: string; isBot: bool
   ];
   const botNames = ["Hắc Long Bot", "Bạch Hổ Bot", "Ẩn Sĩ Bot", "Bóng Ma Bot", "Thợ Săn Bot", "Dân Thường Bot"];
 
-  while (3 > finalPlayersList.length) {
+  const targetCount = Math.max(3, playerCount);
+
+  while (targetCount > finalPlayersList.length) {
     const randomName = botNames[Math.floor(Math.random() * botNames.length)];
     const uniqueName = `${randomName} #${Math.floor(Math.random() * 900) + 100}`;
     if (!finalPlayersList.some(p => p.name === uniqueName)) {
@@ -93,24 +100,135 @@ export function initGame(playersInLobby: { id: string; name: string; isBot: bool
     }
   }
 
-  // Phân bổ nhân vật ngẫu nhiên chuẩn phe Shadow Hunters
-  const assignedCharacters = assignCharactersForPlayers(finalPlayersList.length);
+  // Giải quyết nhân vật của người chơi nếu có lựa chọn trước
+  let selectedChar: Character | undefined;
+  if (selectedCharName) {
+    selectedChar = CHARACTERS.find(c => c.name === selectedCharName);
+  } else if (selectedAlignment && "RANDOM" !== selectedAlignment) {
+    const matchingChars = CHARACTERS.filter(c => c.alignment === selectedAlignment);
+    if (0 < matchingChars.length) {
+      selectedChar = matchingChars[Math.floor(Math.random() * matchingChars.length)];
+    }
+  }
 
-  const players: Player[] = finalPlayersList.map((p, idx) => {
-    const character = assignedCharacters[idx];
-    return {
-      id: p.id,
-      name: p.name,
-      character: { ...character },
-      currentHp: character.hp,
-      locationId: null,
-      alignmentRevealed: false,
-      equipments: [],
-      isBot: p.isBot,
-      isDead: false,
-      color: botColors[idx % botColors.length]
-    };
-  });
+  // Phân bổ nhân vật ngẫu nhiên chuẩn phe Shadow Hunters
+  let players: Player[];
+
+  if (selectedChar) {
+    const count = finalPlayersList.length;
+    let shadowCount = 1;
+    let hunterCount = 1;
+    let neutralCount = 1;
+
+    if (4 === count) {
+      shadowCount = 2;
+      hunterCount = 2;
+      neutralCount = 0;
+    } else if (5 === count) {
+      shadowCount = 2;
+      hunterCount = 2;
+      neutralCount = 1;
+    } else if (6 === count) {
+      shadowCount = 2;
+      hunterCount = 2;
+      neutralCount = 2;
+    } else if (7 === count) {
+      shadowCount = 3;
+      hunterCount = 3;
+      neutralCount = 1;
+    } else if (8 === count) {
+      shadowCount = 3;
+      hunterCount = 3;
+      neutralCount = 2;
+    } else if (9 === count) {
+      shadowCount = 3;
+      hunterCount = 3;
+      neutralCount = 3;
+    } else if (10 === count) {
+      shadowCount = 3;
+      hunterCount = 3;
+      neutralCount = 4;
+    } else if (11 === count) {
+      shadowCount = 4;
+      hunterCount = 4;
+      neutralCount = 3;
+    } else if (12 <= count) {
+      shadowCount = 4;
+      hunterCount = 4;
+      neutralCount = 4;
+    }
+
+    // Điều chỉnh nếu phe Neutral được chọn nhưng cấu hình mặc định có 0 Neutral (e.g. 4 người chơi)
+    if (Alignment.NEUTRAL === selectedChar.alignment && 0 === neutralCount) {
+      if (Math.random() > 0.5) {
+        shadowCount = Math.max(0, shadowCount - 1);
+      } else {
+        hunterCount = Math.max(0, hunterCount - 1);
+      }
+    } else {
+      // Giảm bớt 1 slot của phe tương ứng
+      if (Alignment.SHADOW === selectedChar.alignment) {
+        shadowCount = Math.max(0, shadowCount - 1);
+      } else if (Alignment.HUNTER === selectedChar.alignment) {
+        hunterCount = Math.max(0, hunterCount - 1);
+      } else {
+        neutralCount = Math.max(0, neutralCount - 1);
+      }
+    }
+
+    const shadows = CHARACTERS.filter(c => c.alignment === Alignment.SHADOW && c.name !== selectedChar!.name);
+    const hunters = CHARACTERS.filter(c => c.alignment === Alignment.HUNTER && c.name !== selectedChar!.name);
+    const neutrals = CHARACTERS.filter(c => c.alignment === Alignment.NEUTRAL && c.name !== selectedChar!.name);
+
+    const shuffle = <T>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
+
+    const shuffledShadows = shuffle(shadows);
+    const shuffledHunters = shuffle(hunters);
+    const shuffledNeutrals = shuffle(neutrals);
+
+    const botCharacters: Character[] = [
+      ...shuffledShadows.slice(0, shadowCount),
+      ...shuffledHunters.slice(0, hunterCount),
+      ...shuffledNeutrals.slice(0, neutralCount)
+    ];
+
+    const shuffledBotCharacters = shuffle(botCharacters);
+
+    let botIdx = 0;
+    players = finalPlayersList.map((p, idx) => {
+      const isHuman = false === p.isBot;
+      const character = isHuman ? selectedChar! : shuffledBotCharacters[botIdx++];
+      return {
+        id: p.id,
+        name: p.name,
+        character: { ...character },
+        currentHp: character.hp,
+        locationId: null,
+        alignmentRevealed: false,
+        equipments: [],
+        isBot: p.isBot,
+        isDead: false,
+        color: botColors[idx % botColors.length]
+      };
+    });
+  } else {
+    const assignedCharacters = assignCharactersForPlayers(finalPlayersList.length);
+    players = finalPlayersList.map((p, idx) => {
+      const character = assignedCharacters[idx];
+      return {
+        id: p.id,
+        name: p.name,
+        character: { ...character },
+        currentHp: character.hp,
+        locationId: null,
+        alignmentRevealed: false,
+        equipments: [],
+        isBot: p.isBot,
+        isDead: false,
+        color: botColors[idx % botColors.length]
+      };
+    });
+  }
 
   const shuffleIds = (arr: GameCard[]): string[] => {
     return arr.map(c => c.id).sort(() => Math.random() - 0.5);

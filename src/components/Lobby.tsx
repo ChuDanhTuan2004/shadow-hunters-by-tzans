@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Users, User, Shield, Globe, Lock, Play, Plus, ArrowRight, RefreshCw, Bot, Sparkles, MessageSquare, BookOpen, ArrowLeft } from "lucide-react";
 import { createGameRoom, joinGameRoom, getPublicRooms } from "../firebase";
+import { CHARACTERS } from "../data/cards";
+import { Alignment } from "../types";
 
 const bgPc = "/assets/images/bg/bg-pc-compressed.png";
 const bgMobile = "/assets/images/bg/bg-mobile-compressed.png";
@@ -9,7 +11,7 @@ interface LobbyProps {
   playerId: string;
   playerName: string;
   setPlayerName: (name: string) => void;
-  onStartSoloGame: () => void;
+  onStartSoloGame: (selectedCharName?: string, playerCount?: number, selectedAlignment?: Alignment) => void;
   onEnterRoom: (roomId: string) => void;
   onOpenRules: () => void;
   initialView?: "home" | "start";
@@ -33,6 +35,11 @@ export default function Lobby({
   // Trạng thái các Modal
   const [showConfirmBotModal, setShowConfirmBotModal] = useState(false);
   const [showNameInputModal, setShowNameInputModal] = useState(false);
+
+  // Trạng thái cho chế độ Luyện tập Bot
+  const [selectedPlayerCount, setSelectedPlayerCount] = useState(4);
+  const [selectedAlignment, setSelectedAlignment] = useState<Alignment | "RANDOM">("RANDOM");
+  const [selectedCharName, setSelectedCharName] = useState<string | null>(null);
 
   // Hành động phòng trực tuyến đang chờ (Tạo hoặc Vào phòng)
   const [pendingRoomAction, setPendingRoomAction] = useState<{
@@ -354,38 +361,265 @@ export default function Lobby({
         </div>
       )}
 
-      {/* ================= MODAL XÁC NHẬN LUYỆN TẬP BOT ================= */}
+      {/* ================= MODAL THIẾT LẬP LUYỆN TẬP BOT ================= */}
       {showConfirmBotModal && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#0a0c16]/95 border border-[#4437ac]/50 p-6 rounded-3xl w-full max-w-sm shadow-[0_0_30px_rgba(68,55,172,0.4)] text-center space-y-5 animate-slideUp">
-            <div className="inline-flex p-3 bg-[#4437ac]/20 border border-[#7ba2be]/20 rounded-2xl text-[#7ba2be] mb-1">
-              <Bot className="w-8 h-8" />
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#0a0c16]/95 border border-[#4437ac]/50 p-4 sm:p-6 rounded-3xl w-full max-w-3xl shadow-[0_0_40px_rgba(68,55,172,0.4)] space-y-4 sm:space-y-6 animate-slideUp max-h-[92vh] flex flex-col">
+            
+            {/* Modal Header */}
+            <div className="flex items-center gap-3 border-b border-white/5 pb-3">
+              <div className="p-2 bg-[#4437ac]/20 border border-[#7ba2be]/20 rounded-xl text-[#7ba2be]">
+                <Bot className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-white font-black text-sm sm:text-base uppercase tracking-wider text-left">
+                  Thiết Lập Trận Đấu AI
+                </h3>
+                <p className="text-[10px] sm:text-xs text-neutral-400 font-medium text-left">
+                  Tùy chỉnh số lượng người chơi, phe phái và nhân vật trước khi bắt đầu.
+                </p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-white font-black text-sm uppercase tracking-wide">
-                Luyện Tập Với AI
-              </h3>
-              <p className="text-xs text-neutral-400 leading-relaxed max-w-[280px] mx-auto">
-                Xác nhận vào trận luyện tập? Bạn sẽ tham gia trận đấu ngoại tuyến cùng AI thông minh.
-              </p>
+
+            {/* Scrollable Setup Options */}
+            <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 pr-1 scrollbar-thin text-left">
+              {/* Option 1: Số lượng người chơi */}
+              <div className="space-y-2">
+                <label className="block text-[11px] font-black text-[#7ba2be] uppercase tracking-widest">
+                  1. Số lượng người chơi
+                </label>
+                <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
+                  {[3, 4, 5, 6, 7, 8].map(num => (
+                    <button
+                      key={num}
+                      onClick={() => setSelectedPlayerCount(num)}
+                      className={`py-2 rounded-xl text-xs font-black transition-all cursor-pointer border ${
+                        selectedPlayerCount === num
+                          ? "bg-[#4437ac] text-white border-[#7ba2be] shadow-[0_0_10px_rgba(68,55,172,0.5)]"
+                          : "bg-[#030408]/80 text-neutral-400 border-[#4437ac]/30 hover:border-[#4437ac]/70"
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+                {/* Description helper of alignment count */}
+                <p className="text-[10px] text-amber-400/90 font-bold bg-amber-500/5 border border-amber-500/10 px-3 py-1.5 rounded-lg">
+                  💡 Tỷ lệ phe: {
+                    3 === selectedPlayerCount ? "1 Shadow • 1 Hunter • 1 Neutral" :
+                    4 === selectedPlayerCount ? "2 Shadow • 2 Hunter • 0 Neutral" :
+                    5 === selectedPlayerCount ? "2 Shadow • 2 Hunter • 1 Neutral" :
+                    6 === selectedPlayerCount ? "2 Shadow • 2 Hunter • 2 Neutral" :
+                    7 === selectedPlayerCount ? "3 Shadow • 3 Hunter • 1 Neutral" :
+                    "3 Shadow • 3 Hunter • 2 Neutral"
+                  }
+                </p>
+              </div>
+
+              {/* Option 2: Chọn phe phái trước (Bắt buộc) */}
+              <div className="space-y-2">
+                <label className="block text-[11px] font-black text-[#7ba2be] uppercase tracking-widest">
+                  2. Chọn Phe Phái (Bắt buộc)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {/* Option: RANDOM */}
+                  <button
+                    onClick={() => {
+                      setSelectedAlignment("RANDOM");
+                      setSelectedCharName(null);
+                    }}
+                    className={`p-3 rounded-xl border transition-all text-left cursor-pointer group ${
+                      "RANDOM" === selectedAlignment
+                        ? "bg-[#4437ac]/20 border-[#7ba2be] shadow-[0_0_15px_rgba(68,55,172,0.3)]"
+                        : "bg-[#030408]/80 border-[#4437ac]/20 hover:border-[#4437ac]/60"
+                    }`}
+                  >
+                    <span className={`block font-black text-xs uppercase tracking-wide group-hover:text-white transition-colors ${
+                      "RANDOM" === selectedAlignment ? "text-white" : "text-neutral-400"
+                    }`}>
+                      Ngẫu nhiên
+                    </span>
+                    <span className="block text-[9px] text-neutral-500 mt-1 leading-normal font-medium">
+                      Hệ thống tự động phân vai ngẫu nhiên.
+                    </span>
+                  </button>
+
+                  {/* Option: SHADOW */}
+                  <button
+                    onClick={() => {
+                      setSelectedAlignment(Alignment.SHADOW);
+                      setSelectedCharName(null);
+                    }}
+                    className={`p-3 rounded-xl border transition-all text-left cursor-pointer group ${
+                      Alignment.SHADOW === selectedAlignment
+                        ? "bg-red-500/10 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                        : "bg-[#030408]/80 border-[#4437ac]/20 hover:border-red-500/40"
+                    }`}
+                  >
+                    <span className={`block font-black text-xs uppercase tracking-wide group-hover:text-red-400 transition-colors ${
+                      Alignment.SHADOW === selectedAlignment ? "text-red-400" : "text-neutral-400"
+                    }`}>
+                      Shadow
+                    </span>
+                    <span className="block text-[9px] text-neutral-500 mt-1 leading-normal font-medium">
+                      Thuộc phe Bóng tối khát máu.
+                    </span>
+                  </button>
+
+                  {/* Option: HUNTER */}
+                  <button
+                    onClick={() => {
+                      setSelectedAlignment(Alignment.HUNTER);
+                      setSelectedCharName(null);
+                    }}
+                    className={`p-3 rounded-xl border transition-all text-left cursor-pointer group ${
+                      Alignment.HUNTER === selectedAlignment
+                        ? "bg-sky-500/10 border-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.3)]"
+                        : "bg-[#030408]/80 border-[#4437ac]/20 hover:border-sky-500/40"
+                    }`}
+                  >
+                    <span className={`block font-black text-xs uppercase tracking-wide group-hover:text-sky-400 transition-colors ${
+                      Alignment.HUNTER === selectedAlignment ? "text-sky-400" : "text-neutral-400"
+                    }`}>
+                      Hunter
+                    </span>
+                    <span className="block text-[9px] text-neutral-500 mt-1 leading-normal font-medium">
+                      Thợ săn bảo vệ công lý loài người.
+                    </span>
+                  </button>
+
+                  {/* Option: NEUTRAL */}
+                  <button
+                    onClick={() => {
+                      setSelectedAlignment(Alignment.NEUTRAL);
+                      setSelectedCharName(null);
+                    }}
+                    className={`p-3 rounded-xl border transition-all text-left cursor-pointer group ${
+                      Alignment.NEUTRAL === selectedAlignment
+                        ? "bg-amber-500/10 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                        : "bg-[#030408]/80 border-[#4437ac]/20 hover:border-amber-500/40"
+                    }`}
+                  >
+                    <span className={`block font-black text-xs uppercase tracking-wide group-hover:text-amber-400 transition-colors ${
+                      Alignment.NEUTRAL === selectedAlignment ? "text-amber-400" : "text-neutral-400"
+                    }`}>
+                      Neutral
+                    </span>
+                    <span className="block text-[9px] text-neutral-500 mt-1 leading-normal font-medium">
+                      Nhân vật trung lập có mục tiêu riêng.
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Option 3: Chọn nhân vật (Bị khóa cho đến khi chọn phe) */}
+              <div className="space-y-2">
+                <label className="block text-[11px] font-black text-[#7ba2be] uppercase tracking-widest">
+                  3. Chọn Nhân Vật
+                </label>
+
+                {"RANDOM" === selectedAlignment ? (
+                  /* Phe ngẫu nhiên -> Chọn nhân vật tự động */
+                  <div className="border border-dashed border-[#4437ac]/20 rounded-2xl p-6 bg-[#030408]/40 text-center">
+                    <p className="text-xs text-neutral-500 italic">
+                      🎲 Nhân vật sẽ được hệ thống phân bổ ngẫu nhiên từ mọi phe phái.
+                    </p>
+                  </div>
+                ) : (
+                  /* Phe cụ thể -> Cho phép chọn nhân vật */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
+                    {/* Option: Ngẫu nhiên trong phe */}
+                    <button
+                      onClick={() => setSelectedCharName(null)}
+                      className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                        null === selectedCharName
+                          ? "bg-[#4437ac]/10 border-[#7ba2be] shadow-inner"
+                          : "bg-[#030408]/80 border-[#4437ac]/20 hover:border-[#4437ac]/60"
+                      }`}
+                    >
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-black text-xs text-white">🎲 Ngẫu nhiên trong phe</span>
+                      </div>
+                      <p className="text-[10px] text-neutral-400 leading-normal">
+                        Bắt đầu trận đấu với một nhân vật bất kỳ thuộc phe đã chọn ở trên.
+                      </p>
+                    </button>
+
+                    {/* Lọc nhân vật theo phe được chọn */}
+                    {CHARACTERS.filter(c => c.alignment === selectedAlignment).map(char => {
+                      const isSelected = selectedCharName === char.name;
+                      const borderCol = Alignment.SHADOW === selectedAlignment ? "hover:border-red-500/50" :
+                                        Alignment.HUNTER === selectedAlignment ? "hover:border-sky-500/50" :
+                                        "hover:border-amber-500/50";
+                      const borderSelected = Alignment.SHADOW === selectedAlignment ? "border-red-500 bg-red-500/5 shadow-inner" :
+                                             Alignment.HUNTER === selectedAlignment ? "border-sky-500 bg-sky-500/5 shadow-inner" :
+                                             "border-amber-500 bg-amber-500/5 shadow-inner";
+                      return (
+                        <button
+                          key={char.name}
+                          onClick={() => setSelectedCharName(char.name)}
+                          className={`p-3 rounded-xl border text-left cursor-pointer transition-all space-y-1.5 ${
+                            isSelected
+                              ? borderSelected
+                              : `bg-[#030408]/80 border-[#4437ac]/20 ${borderCol}`
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="font-black text-xs text-white">{char.name}</span>
+                            <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-neutral-800 text-neutral-300">
+                              HP: {char.hp}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-black uppercase text-[#7ba2be] block">
+                              Kỹ năng: {char.abilityName}
+                            </span>
+                            <p className="text-[9px] text-neutral-400 leading-normal mt-0.5 font-medium">
+                              {char.abilityDesc}
+                            </p>
+                          </div>
+                          <div className="pt-1.5 border-t border-white/5">
+                            <span className="text-[8px] text-neutral-500 block leading-normal italic font-medium">
+                              Mục tiêu: {char.winCondition}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="flex gap-3 pt-2">
+
+            {/* Modal Actions */}
+            <div className="flex gap-3 pt-3 border-t border-white/5">
               <button
-                onClick={() => setShowConfirmBotModal(false)}
-                className="flex-1 py-2.5 bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-xs font-semibold text-neutral-300 rounded-xl transition-all cursor-pointer"
+                onClick={() => {
+                  setShowConfirmBotModal(false);
+                  // Khôi phục mặc định
+                  setSelectedPlayerCount(4);
+                  setSelectedAlignment("RANDOM");
+                  setSelectedCharName(null);
+                }}
+                className="flex-1 py-3 bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-xs font-semibold text-neutral-300 rounded-xl transition-all cursor-pointer active:scale-98"
               >
                 Hủy Bỏ
               </button>
               <button
                 onClick={() => {
                   setShowConfirmBotModal(false);
-                  onStartSoloGame();
+                  onStartSoloGame(
+                    selectedCharName || undefined,
+                    selectedPlayerCount,
+                    "RANDOM" === selectedAlignment ? undefined : selectedAlignment
+                  );
                 }}
-                className="flex-1 py-2.5 bg-gradient-to-r from-[#4437ac] to-[#5b4fcd] hover:from-[#5b4fcd] hover:to-[#7ba2be] text-xs font-bold text-white rounded-xl shadow-lg transition-all cursor-pointer"
+                className="flex-1 py-3 bg-gradient-to-r from-[#4437ac] to-[#5b4fcd] hover:from-[#5b4fcd] hover:to-[#7ba2be] text-xs font-bold text-white rounded-xl shadow-lg transition-all cursor-pointer active:scale-98"
               >
                 Vào Trận
               </button>
             </div>
+
           </div>
         </div>
       )}
