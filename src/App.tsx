@@ -26,6 +26,7 @@ import AbilityTargetDialog from "./components/dialogs/AbilityTargetDialog";
 import CharacterListModal from "./components/dialogs/CharacterListModal";
 import EquipmentListModal from "./components/dialogs/EquipmentListModal";
 import CardListModal from "./components/dialogs/CardListModal";
+import CardHistoryModal from "./components/dialogs/CardHistoryModal";
 
 // Icons
 import { Shield, BookOpen, Settings, LogOut, RefreshCw, History, Sparkles } from "lucide-react";
@@ -102,6 +103,8 @@ export default function App() {
     setShowEquipmentList,
     showCardList,
     setShowCardList,
+    showCardHistory,
+    setShowCardHistory,
     handleRevealIdentity,
     handleStealEquipment,
     handleEndTurn,
@@ -221,8 +224,17 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Right: Settings button only */}
+              {/* Right: Card history + Settings */}
               <div className="flex items-center gap-3 text-[11px] sm:text-xs font-bold text-neutral-300 shrink-0">
+                {/* Card history button */}
+                <button
+                  onClick={() => setShowCardHistory(true)}
+                  className="hover:text-white hover:border-[#7BA2BE]/60 transition-all cursor-pointer flex items-center gap-2 py-2 px-4 border border-neutral-700 rounded-xl bg-neutral-900/60"
+                >
+                  <History className="w-4 h-4 text-[#7BA2BE]" />
+                  <span className="text-xs font-bold text-neutral-200">Lịch sử thẻ</span>
+                </button>
+
                 {/* Settings button container */}
                 <div className="relative">
                   <button
@@ -458,6 +470,12 @@ export default function App() {
       <CardListModal
         isOpen={showCardList}
         onClose={() => setShowCardList(false)}
+      />
+
+      <CardHistoryModal
+        isOpen={showCardHistory}
+        onClose={() => setShowCardHistory(false)}
+        drawnCardIds={activeGame?.players.find(p => p.id === playerId)?.drawnCards || []}
       />
 
       {activeGame && (

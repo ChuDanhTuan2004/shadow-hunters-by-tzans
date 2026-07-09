@@ -56,6 +56,7 @@ export function useGameplay({
   const [showCharacterList, setShowCharacterList] = useState(false);
   const [showEquipmentList, setShowEquipmentList] = useState(false);
   const [showCardList, setShowCardList] = useState(false);
+  const [showCardHistory, setShowCardHistory] = useState(false);
 
   // Bot execution loop effects
   useEffect(() => {
@@ -133,6 +134,7 @@ export function useGameplay({
         locationId: null,
         alignmentRevealed: false,
         equipments: [],
+        drawnCards: [],
         isDead: false
       };
     });
@@ -315,6 +317,11 @@ export function useGameplay({
 
       if (null !== drawnCardId && null !== deckType) {
         nextState.drawnCardId = drawnCardId;
+        nextState.players = nextState.players.map(p =>
+          p.id === currentPlayer.id
+            ? { ...p, drawnCards: [...(p.drawnCards || []), drawnCardId] }
+            : p
+        );
         const card = getCardById(drawnCardId);
         const cardName = card ? card.name : "thẻ bài";
         if (CardType.HERMIT === deckType) {
@@ -395,6 +402,11 @@ export function useGameplay({
 
     if (null !== drawnCardId && null !== deckType) {
       nextState.drawnCardId = drawnCardId;
+      nextState.players = nextState.players.map(p =>
+        p.id === currentPlayer.id
+          ? { ...p, drawnCards: [...(p.drawnCards || []), drawnCardId] }
+          : p
+      );
       const card = getCardById(drawnCardId);
       const cardName = card ? card.name : "thẻ bài";
       if (CardType.HERMIT === deckType) {
@@ -437,6 +449,11 @@ export function useGameplay({
       const card = getCardById(drawnCardId);
       const cardName = card ? card.name : "thẻ bài";
       nextState.drawnCardId = drawnCardId;
+      nextState.players = nextState.players.map(p =>
+        p.id === activeGame.players[activeGame.turnIndex].id
+          ? { ...p, drawnCards: [...(p.drawnCards || []), drawnCardId] }
+          : p
+      );
       nextState.selectedGateDeck = type;
       nextState.logs = [
         createLog(`🗃️ [Cổng Bóng Tối] ${activeGame.players[activeGame.turnIndex].name} rút thẻ bài [${cardName}] thuộc bộ bài ${type === CardType.HERMIT ? "Ẩn Sĩ" : type === CardType.LIGHT ? "Ánh Sáng" : "Bóng Tối"}.`, "info"),
@@ -796,6 +813,7 @@ export function useGameplay({
           locationId: null,
           alignmentRevealed: false,
           equipments: [],
+          drawnCards: [],
           isDead: false
         }));
 
@@ -1003,6 +1021,8 @@ export function useGameplay({
     setShowEquipmentList,
     showCardList,
     setShowCardList,
+    showCardHistory,
+    setShowCardHistory,
     handleRevealIdentity,
     handleStealEquipment,
     handleEndTurn,

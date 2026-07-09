@@ -171,6 +171,7 @@ export function useGameSession() {
       locationId: null,
       alignmentRevealed: false,
       equipments: [],
+      drawnCards: [],
       isBot: true,
       isDead: false,
       color: botColors[activeGame.players.length % botColors.length]

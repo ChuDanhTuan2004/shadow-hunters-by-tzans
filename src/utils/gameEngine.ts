@@ -206,6 +206,7 @@ export function initGame(
         locationId: null,
         alignmentRevealed: false,
         equipments: [],
+        drawnCards: [],
         isBot: p.isBot,
         isDead: false,
         color: botColors[idx % botColors.length]
@@ -223,6 +224,7 @@ export function initGame(
         locationId: null,
         alignmentRevealed: false,
         equipments: [],
+        drawnCards: [],
         isBot: p.isBot,
         isDead: false,
         color: botColors[idx % botColors.length]

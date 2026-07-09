@@ -54,6 +54,7 @@ export interface Player {
   alignmentRevealed: boolean; // Đã tiết lộ thân phận hay chưa
   hasUsedAbility?: boolean; // Đã sử dụng kỹ năng đặc biệt chủ động hay chưa
   equipments: string[]; // Danh sách các ID thẻ trang bị đang sở hữu
+  drawnCards: string[]; // Danh sách ID thẻ đã từng bốc
   isBot: boolean;
   isDead: boolean;
   color: string;

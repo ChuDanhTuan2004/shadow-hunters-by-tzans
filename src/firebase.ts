@@ -72,6 +72,7 @@ export async function createGameRoom(
         locationId: null,
         alignmentRevealed: false,
         equipments: [],
+        drawnCards: [],
         isBot: false,
         isDead: false,
         color: "#EF4444" // Red
@@ -144,6 +145,7 @@ export async function joinGameRoom(
     locationId: null,
     alignmentRevealed: false,
     equipments: [],
+    drawnCards: [],
     isBot: false,
     isDead: false,
     color: assignedColor
