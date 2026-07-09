@@ -66,6 +66,8 @@ export interface Player {
   agnesTargetPlayerId?: string | null;
   bryanKilledHp13?: boolean;
   mgangaPoisoned?: boolean;
+  characterOptions?: string[]; // 2 nhân vật được rút để chọn (multiplayer)
+  characterChoice?: string | null; // null = chưa chọn, string = đã chọn
 }
 
 export interface GameLog {
@@ -89,7 +91,7 @@ export interface GameState {
   roomId: string;
   players: Player[];
   turnIndex: number;
-  phase: "lobby" | "roll" | "action" | "attack" | "game_over" | "cancelled";
+  phase: "lobby" | "roll" | "action" | "attack" | "game_over" | "cancelled" | "character_select";
   rolledDice: { d6: number; d4: number; total: number } | null;
   logs: GameLog[];
   winnerAlignment: Alignment[] | string[] | null; // Phe thắng cuộc

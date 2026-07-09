@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Alignment, CardType, GameState, Player } from "../types";
 import { LOCATIONS, areLocationsInSameArea } from "../data/locations";
-import { DECK_HERMIT, DECK_LIGHT, DECK_SHADOW, getCardById, GameCard } from "../data/cards";
+import { CHARACTERS, DECK_HERMIT, DECK_LIGHT, DECK_SHADOW, getCardById, GameCard } from "../data/cards";
 import { updateRoomState } from "../firebase";
 import {
   initGame,
@@ -19,7 +19,7 @@ import {
 } from "../utils/gameEngine";
 
 interface UseGameplayParams {
-  view: "lobby" | "waiting_room" | "playing";
+  view: "lobby" | "waiting_room" | "character_select" | "playing";
   gameMode: "solo" | "multiplayer" | null;
   setGameMode: React.Dispatch<React.SetStateAction<"solo" | "multiplayer" | null>>;
   roomId: string | null;
@@ -28,7 +28,7 @@ interface UseGameplayParams {
   playerName: string;
   activeGame: GameState | null;
   setActiveGame: React.Dispatch<React.SetStateAction<GameState | null>>;
-  setView: React.Dispatch<React.SetStateAction<"lobby" | "waiting_room" | "playing">>;
+  setView: React.Dispatch<React.SetStateAction<"lobby" | "waiting_room" | "character_select" | "playing">>;
   setLobbyInitialView: React.Dispatch<React.SetStateAction<"home" | "start">>;
 }
 
@@ -118,15 +118,110 @@ export function useGameplay({
     setView("playing");
   };
 
-  // 2. Khai cuộc Multiplayer (Host phân phát bài)
+  // Helper: gán 2 lựa chọn nhân vật cho mỗi player, đảm bảo không trùng
+  const generateCharacterOptions = (state: GameState): Player[] => {
+    const count = state.players.length;
+    const shadows = CHARACTERS.filter(c => c.alignment === Alignment.SHADOW);
+    const hunters = CHARACTERS.filter(c => c.alignment === Alignment.HUNTER);
+    const neutrals = CHARACTERS.filter(c => c.alignment === Alignment.NEUTRAL);
+
+    const shuffle = <T>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
+
+    let shadowCount = 1;
+    let hunterCount = 1;
+    let neutralCount = 1;
+
+    if (4 === count) { shadowCount = 2; hunterCount = 2; neutralCount = 0; }
+    else if (5 === count) { shadowCount = 2; hunterCount = 2; neutralCount = 1; }
+    else if (6 === count) { shadowCount = 2; hunterCount = 2; neutralCount = 2; }
+    else if (7 === count) { shadowCount = 3; hunterCount = 3; neutralCount = 1; }
+    else if (8 === count) { shadowCount = 3; hunterCount = 3; neutralCount = 2; }
+    else if (9 === count) { shadowCount = 3; hunterCount = 3; neutralCount = 3; }
+    else if (10 === count) { shadowCount = 3; hunterCount = 3; neutralCount = 4; }
+    else if (11 === count) { shadowCount = 4; hunterCount = 4; neutralCount = 3; }
+    else if (12 <= count) { shadowCount = 4; hunterCount = 4; neutralCount = 4; }
+
+    // Tạo pool theo alignment, mỗi nhân vật xuất hiện 2 lần (cho 2 lựa chọn)
+    const pool: { char: Character; alignment: Alignment }[] = [
+      ...shuffle(shadows).slice(0, shadowCount * 2).map(c => ({ char: c, alignment: Alignment.SHADOW })),
+      ...shuffle(hunters).slice(0, hunterCount * 2).map(c => ({ char: c, alignment: Alignment.HUNTER })),
+      ...shuffle(neutrals).slice(0, neutralCount * 2).map(c => ({ char: c, alignment: Alignment.NEUTRAL })),
+    ];
+
+    // Xáo pool và phân phát cho mỗi player, đảm bảo không trùng character name
+    const shuffledPool = shuffle(pool);
+    const usedNames = new Set<string>();
+    const playersWithOptions: Player[] = [];
+
+    for (let i = 0; i < state.players.length; i++) {
+      const p = state.players[i];
+      const options: string[] = [];
+      for (const item of shuffledPool) {
+        if (options.length >= 2) break;
+        if (!usedNames.has(item.char.name)) {
+          options.push(item.char.name);
+          usedNames.add(item.char.name);
+        }
+      }
+      // Nếu không đủ options (hiếm), fill bằng random chưa dùng
+      while (options.length < 2) {
+        const fallback = CHARACTERS.find(c => !usedNames.has(c.name));
+        if (fallback) {
+          options.push(fallback.name);
+          usedNames.add(fallback.name);
+        } else break;
+      }
+      playersWithOptions.push({
+        ...p,
+        character: {
+          name: "Ẩn danh",
+          alignment: Alignment.NEUTRAL,
+          hp: 10,
+          abilityName: "",
+          abilityDesc: "",
+          winCondition: ""
+        },
+        currentHp: 10,
+        locationId: null,
+        alignmentRevealed: false,
+        equipments: [],
+        drawnCards: [],
+        isDead: false,
+        characterOptions: options,
+        characterChoice: null
+      });
+    }
+
+    return playersWithOptions;
+  };
+
+  // 2. Khai cuộc Multiplayer (Host phát 2 options cho mỗi player)
   const handleStartMultiplayerGame = async () => {
     if (null === activeGame || null === roomId) return;
     if (3 > activeGame.players.length) return;
 
-    const assignedCharacters = assignCharactersForPlayers(activeGame.players.length);
+    const playersWithOptions = generateCharacterOptions(activeGame);
 
-    const updatedPlayers = activeGame.players.map((p, idx) => {
-      const character = assignedCharacters[idx];
+    const newLog = createLog("🎭 Vòng chọn nhân vật bắt đầu! Mỗi người chơi hãy chọn 1 trong 2 nhân vật được rút.", "system");
+
+    const nextState = {
+      ...activeGame,
+      players: playersWithOptions,
+      logs: [newLog],
+      phase: "character_select" as const,
+    };
+
+    await updateRoomState(roomId, nextState);
+  };
+
+  // Helper: khởi tạo game thật sự sau khi tất cả đã chọn nhân vật
+  const finalizeGameStart = async (state: GameState) => {
+    if (!roomId) return;
+
+    // Xác định nhân vật thực tế từ lựa chọn
+    const updatedPlayers = state.players.map(p => {
+      const charName = p.characterChoice || p.characterOptions![0];
+      const character = CHARACTERS.find(c => c.name === charName)!;
       return {
         ...p,
         character: { ...character },
@@ -135,7 +230,9 @@ export function useGameplay({
         alignmentRevealed: false,
         equipments: [],
         drawnCards: [],
-        isDead: false
+        isDead: false,
+        characterOptions: undefined,
+        characterChoice: undefined
       };
     });
 
@@ -146,7 +243,7 @@ export function useGameplay({
     };
 
     const nextState = {
-      ...activeGame,
+      ...state,
       players: updatedPlayers,
       logs: [newLog],
       phase: "roll" as const,
@@ -166,6 +263,58 @@ export function useGameplay({
 
     await updateRoomState(roomId, nextState);
   };
+
+  // Hàm xác nhận chọn nhân vật
+  const handleConfirmCharacter = async (characterName: string) => {
+    if (!activeGame || !roomId) return;
+
+    const nextState = {
+      ...activeGame,
+      players: activeGame.players.map(p =>
+        p.id === playerId
+          ? { ...p, characterChoice: characterName }
+          : p
+      ),
+    };
+
+    // Kiểm tra nếu tất cả đã chọn (kể cả bot)
+    const allChosen = nextState.players.every(p => p.characterChoice !== null && p.characterChoice !== undefined);
+    if (allChosen) {
+      await finalizeGameStart(nextState);
+    } else {
+      await updateRoomState(roomId, nextState);
+    }
+  };
+
+  // Bot tự động chọn nhân vật
+  useEffect(() => {
+    if (gameMode === "multiplayer" && roomId && activeGame && "character_select" === activeGame.phase) {
+      const isHost = activeGame.players[0].id === playerId;
+      const botsUnchosen = activeGame.players.filter(p => p.isBot && (p.characterChoice === null || p.characterChoice === undefined));
+      if (isHost && botsUnchosen.length > 0) {
+        const timer = setTimeout(async () => {
+          let nextState = { ...activeGame };
+          for (const bot of botsUnchosen) {
+            const options = bot.characterOptions || [];
+            const pick = options[Math.floor(Math.random() * options.length)] || null;
+            nextState = {
+              ...nextState,
+              players: nextState.players.map(p =>
+                p.id === bot.id ? { ...p, characterChoice: pick } : p
+              ),
+            };
+          }
+          const allChosen = nextState.players.every(p => p.characterChoice !== null && p.characterChoice !== undefined);
+          if (allChosen) {
+            await finalizeGameStart(nextState);
+          } else {
+            await updateRoomState(roomId, nextState);
+          }
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [activeGame, gameMode, roomId, playerId]);
 
   // 3. Đổ xúc xắc di chuyển
   const handleRollMove = () => {
@@ -1051,6 +1200,7 @@ export function useGameplay({
     compassChoices,
     handleStartSoloGame,
     handleStartMultiplayerGame,
+    handleConfirmCharacter,
     handleRollMove,
     handleLocationChoice,
     handleSelectGateDeck,

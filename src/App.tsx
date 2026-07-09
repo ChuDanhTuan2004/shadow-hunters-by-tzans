@@ -11,6 +11,7 @@ import Lobby from "./components/Lobby";
 import GameBoard from "./components/GameBoard";
 import RulesModal from "./components/RulesModal";
 import WaitingRoom from "./components/WaitingRoom";
+import CharacterSelect from "./components/CharacterSelect";
 import PlayerListSidebar from "./components/PlayerListSidebar";
 import ActionControls from "./components/ActionControls";
 
@@ -87,6 +88,7 @@ export default function App() {
     compassChoices,
     handleStartSoloGame,
     handleStartMultiplayerGame,
+    handleConfirmCharacter,
     handleRollMove,
     handleLocationChoice,
     handleSelectGateDeck,
@@ -133,7 +135,7 @@ export default function App() {
     <div className="min-h-screen bg-neutral-950 text-gray-100 flex flex-col selection:bg-rose-500/30 selection:text-white relative">
 
       {/* HEADER TOPBAR */}
-      {"playing" !== view && "lobby" !== view && "waiting_room" !== view && (
+      {"playing" !== view && "lobby" !== view && "waiting_room" !== view && "character_select" !== view && (
         <header className="sticky top-0 z-40 px-4 sm:px-6 py-4 flex items-center justify-between transition-colors duration-300 bg-neutral-905/80 backdrop-blur-md border-b border-neutral-800">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl transition-all duration-300 border bg-[#4437ac]/15 border-[#7ba2be]/25 text-[#7ba2be] shadow-[0_0_10px_rgba(123,162,190,0.1)]">
@@ -206,6 +208,15 @@ export default function App() {
             onAddBot={handleAddBotInLobby}
             onLeave={handleLeaveGame}
             onStartGame={handleStartMultiplayerGame}
+          />
+        )}
+
+        {/* VIEW 2.5: CHỌN NHÂN VẬT */}
+        {view === "character_select" && activeGame && (
+          <CharacterSelect
+            activeGame={activeGame}
+            playerId={playerId}
+            onConfirmCharacter={handleConfirmCharacter}
           />
         )}
 

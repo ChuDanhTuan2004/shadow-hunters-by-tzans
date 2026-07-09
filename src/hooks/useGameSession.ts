@@ -21,9 +21,9 @@ export function useGameSession() {
     localStorage.setItem("sh_player_name", trimmed);
   };
 
-  const [view, setView] = useState<"lobby" | "waiting_room" | "playing">(() => {
+  const [view, setView] = useState<"lobby" | "waiting_room" | "character_select" | "playing">(() => {
     const saved = sessionStorage.getItem("sh_view");
-    if (saved === "lobby" || saved === "waiting_room" || saved === "playing") return saved;
+    if (saved === "lobby" || saved === "waiting_room" || saved === "character_select" || saved === "playing") return saved;
     return "lobby";
   });
 
@@ -92,7 +92,7 @@ export function useGameSession() {
 
   // Đăng ký lắng nghe cập nhật Firebase nếu chơi Multiplayer
   useEffect(() => {
-    if ("multiplayer" === gameMode && null !== roomId && ("playing" === view || "waiting_room" === view)) {
+    if ("multiplayer" === gameMode && null !== roomId && ("playing" === view || "waiting_room" === view || "character_select" === view)) {
       const unsubscribe = listenToRoom(roomId, (updatedState: GameState) => {
         if (null === updatedState || undefined === updatedState) {
           alert("Phòng không tồn tại hoặc đã bị hủy.");
@@ -128,8 +128,13 @@ export function useGameSession() {
 
         setActiveGame(updatedState);
 
-        // Chuyển sang màn hình chơi khi host khai chiến (phase chuyển sang roll/action)
-        if ("waiting_room" === view && "lobby" !== updatedState.phase) {
+        // Chuyển sang màn hình chọn nhân vật khi host khai chiến
+        if ("waiting_room" === view && "character_select" === updatedState.phase) {
+          setView("character_select");
+        }
+
+        // Chuyển sang màn hình chơi khi đã chọn nhân vật xong
+        if ("character_select" === view && "character_select" !== updatedState.phase && "lobby" !== updatedState.phase && "cancelled" !== updatedState.phase) {
           setView("playing");
         }
       });
