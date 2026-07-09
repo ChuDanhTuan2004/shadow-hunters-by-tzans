@@ -1460,6 +1460,81 @@ export function activateCharacterAbility(
     } else {
       logs.push(createLog(`⚠️ ${player.name} đã sử dụng kỹ năng lượt bổ sung rồi!`, "system"));
     }
+  } else if (charName.startsWith("Mganga")) {
+    // Per-turn: Target becomes poisoned (takes 1 damage each round)
+    if (!player.hasUsedAbility && !player.abilityDisabled) {
+      if (targetPlayerId) {
+        const target = updatedPlayers.find(p => p.id === targetPlayerId);
+        if (target && !target.isDead) {
+          target.mgangaPoisoned = true;
+          player.hasUsedAbility = true;
+          logs.push(createLog(`🧪 [Độc Dược] Mganga [${player.name}] tẩm độc lên ${target.name}! Mỗi vòng ${target.name} chịu 1 sát thương.`, "action"));
+        }
+      } else {
+        logs.push(createLog(`⚠️ Mganga cần chọn mục tiêu để tẩm độc!`, "system"));
+      }
+    } else if (player.abilityDisabled) {
+      logs.push(createLog(`⚠️ Kỹ năng của ${player.name} đã bị phiếng ấn vĩnh viễn bởi Ellen!`, "system"));
+    } else {
+      logs.push(createLog(`⚠️ ${player.name} đã dùng Độc dược trong lượt này rồi!`, "system"));
+    }
+  } else if (charName.startsWith("Volkath")) {
+    // Passive: heal at start of turn (handled in endTurnTransition)
+    if (!wasAlreadyRevealed) {
+      logs.push(createLog(`💀 [Bất Tử] Volkath [${player.name}] lộ diện! Mỗi lượt hồi máu dựa trên số Shadow còn sống.`, "action"));
+    }
+  } else if (charName.startsWith("Ilumia")) {
+    // One-time: Reveal all Shadows + deal 3 damage to all Shadows
+    if (!player.hasUsedAbility && !player.abilityDisabled) {
+      player.hasUsedAbility = true;
+      const shadowCount = updatedPlayers.filter(p => p.character.alignment === Alignment.SHADOW && !p.isDead).length;
+      updatedPlayers = updatedPlayers.map(p => {
+        if (p.character.alignment === Alignment.SHADOW && !p.isDead) {
+          const newHp = Math.max(0, p.currentHp - 3);
+          const isDead = newHp <= 0;
+          logs.push(createLog(`☀️ [Thánh Quang] Ilumia [${player.name}] thiêu đốt ${p.name} (${p.character.name}) gây 3 sát thương!${isDead ? " 💀 ${p.name} tử trận!" : ""}`, "attack"));
+          return { ...p, alignmentRevealed: true, currentHp: newHp, isDead };
+        }
+        return p;
+      });
+      const revealedNames = updatedPlayers.filter(p => p.character.alignment === Alignment.SHADOW).map(p => p.name).join(", ");
+      logs.push(createLog(`✨ [Thánh Quang] Ilumia làm lộ tất cả Shadow: ${revealedNames}!`, "reveal"));
+
+      const victoryResult = checkVictory(updatedPlayers);
+      if (null !== victoryResult) {
+        return {
+          ...gameState,
+          players: updatedPlayers,
+          logs: [...logs, ...gameState.logs],
+          phase: "game_over",
+          winnerAlignment: victoryResult.winnerAlignment,
+          winnerPlayerIds: victoryResult.winnerPlayerIds
+        };
+      }
+    } else if (player.abilityDisabled) {
+      logs.push(createLog(`⚠️ Kỹ năng của ${player.name} đã bị phiếng ấn vĩnh viễn bởi Ellen!`, "system"));
+    } else {
+      logs.push(createLog(`⚠️ Ilumia đã sử dụng Thánh quang rồi!`, "system"));
+    }
+  } else if (charName.startsWith("Helen")) {
+    // Per-turn: Heal target for 2 HP
+    if (!player.hasUsedAbility && !player.abilityDisabled) {
+      if (targetPlayerId) {
+        const target = updatedPlayers.find(p => p.id === targetPlayerId);
+        if (target && !target.isDead) {
+          const healAmount = Math.min(2, target.character.hp - target.currentHp);
+          target.currentHp += healAmount;
+          player.hasUsedAbility = true;
+          logs.push(createLog(`💚 [Trị Liệu] Helen [${player.name}] hồi ${healAmount} máu cho ${target.name}! (${target.currentHp}/${target.character.hp})`, "action"));
+        }
+      } else {
+        logs.push(createLog(`⚠️ Helen cần chọn mục tiêu để trị liệu!`, "system"));
+      }
+    } else if (player.abilityDisabled) {
+      logs.push(createLog(`⚠️ Kỹ năng của ${player.name} đã bị phiếng ấn vĩnh viễn bởi Ellen!`, "system"));
+    } else {
+      logs.push(createLog(`⚠️ ${player.name} đã dùng Trị liệu trong lượt này rồi!`, "system"));
+    }
   } else {
     // Các nhân vật có nội tại tự động (Vampire, Werewolf, Valkyrie, Ultrasoul, Charles, Bob, Unknown, Emi, Daniel, Bryan, Catherine, George)
     if (!wasAlreadyRevealed) {
@@ -1582,6 +1657,41 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
           currentBot.equipments = ref.equipments;
           currentBot.alignmentRevealed = ref.alignmentRevealed;
         }
+      }
+    }
+
+    // Mganga: Đầu lượt tẩm độc kẻ thù ngẫu nhiên
+    if (botChar.startsWith("Mganga") && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
+      const enemies = updatedState.players.filter(p => !p.isDead && p.character.alignment !== Alignment.SHADOW);
+      if (enemies.length > 0) {
+        const target = enemies[Math.floor(Math.random() * enemies.length)];
+        updatedState = activateCharacterAbility(updatedState, botId, target.id);
+        const ref = updatedState.players.find(p => p.id === botId);
+        if (ref) {
+          currentBot.hasUsedAbility = ref.hasUsedAbility;
+        }
+      }
+    }
+
+    // Helen: Đầu lượt hồi máu cho đồng đội thấp máu nhất
+    if (botChar.startsWith("Helen") && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
+      const allies = updatedState.players.filter(p => !p.isDead && p.id !== botId && p.character.alignment === Alignment.HUNTER);
+      if (allies.length > 0) {
+        const lowestHp = allies.reduce((a, b) => (a.currentHp / a.character.hp) < (b.currentHp / b.character.hp) ? a : b);
+        updatedState = activateCharacterAbility(updatedState, botId, lowestHp.id);
+        const ref = updatedState.players.find(p => p.id === botId);
+        if (ref) {
+          currentBot.hasUsedAbility = ref.hasUsedAbility;
+        }
+      }
+    }
+
+    // Ilumia: Tự động tiết lộ nếu chưa dùng kỹ năng
+    if (botChar.startsWith("Ilumia") && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
+      updatedState = activateCharacterAbility(updatedState, botId);
+      const ref = updatedState.players.find(p => p.id === botId);
+      if (ref) {
+        currentBot.hasUsedAbility = ref.hasUsedAbility;
       }
     }
 
@@ -2023,6 +2133,37 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
 
         if (nextIndex < updatedState.turnIndex) {
           updatedState.roundNumber = (updatedState.roundNumber || 1) + 1;
+
+          // Mganga poison ticks each round
+          const poisonedPlayers = updatedState.players.filter(p => p.mgangaPoisoned && !p.isDead);
+          poisonedPlayers.forEach(victim => {
+            const newHp = Math.max(0, victim.currentHp - 1);
+            const isDead = newHp <= 0;
+            updatedState.players = updatedState.players.map(p =>
+              p.id === victim.id ? { ...p, currentHp: newHp, isDead, alignmentRevealed: isDead ? true : p.alignmentRevealed } : p
+            );
+            updatedState.logs = [
+              createLog(`☠️ [Độc Dược Mganga] ${victim.name} chịu 1 sát thương từ độc!${isDead ? ` 💀 ${victim.name} tử trận! Thân phận: [${victim.character.name}] - Phe [${victim.character.alignment}].` : ""}`, "attack"),
+              ...updatedState.logs
+            ];
+          });
+
+          if (poisonedPlayers.some(p => {
+            const newHp = Math.max(0, p.currentHp - 1);
+            return newHp <= 0;
+          })) {
+            const victoryResult = checkVictory(updatedState.players);
+            if (null !== victoryResult) {
+              updatedState.phase = "game_over";
+              updatedState.winnerAlignment = victoryResult.winnerAlignment;
+              updatedState.winnerPlayerIds = victoryResult.winnerPlayerIds;
+              updatedState.players = updatedState.players.map(p => ({ ...p, alignmentRevealed: true }));
+              updatedState.logs = [
+                createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${victoryResult.winnerAlignment.join(", ")}!`, "system"),
+                ...updatedState.logs
+              ];
+            }
+          }
         }
 
         updatedState.turnIndex = nextIndex;
@@ -2078,8 +2219,24 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
           }
         }
 
-        // George, David: đầu lượt reset trạng thái sử dụng kỹ năng
-        if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David")) {
+        // Volkath: hồi máu dựa trên số Shadow còn sống khi bắt đầu lượt
+        if (nextPlayer.character.name.startsWith("Volkath") && nextPlayer.alignmentRevealed && !nextPlayer.isDead && !nextPlayer.abilityDisabled) {
+          const aliveShadows = updatedState.players.filter(p => !p.isDead && p.character.alignment === Alignment.SHADOW).length;
+          const healAmount = aliveShadows + 2;
+          const targetHp = Math.min(nextPlayer.character.hp, nextPlayer.currentHp + healAmount);
+          if (targetHp > nextPlayer.currentHp) {
+            updatedState.players = updatedState.players.map(p =>
+              p.id === nextPlayer.id ? { ...p, currentHp: targetHp } : p
+            );
+            updatedState.logs = [
+              createLog(`💀 [Bất Tử Volkath] Ma vương [${nextPlayer.name}] hồi ${healAmount} máu nhờ sức mạnh bóng tối! (${targetHp}/${nextPlayer.character.hp})`, "action"),
+              ...updatedState.logs
+            ];
+          }
+        }
+
+        // George, David, Mganga, Helen: đầu lượt reset trạng thái sử dụng kỹ năng
+        if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen")) {
           updatedState.players = updatedState.players.map(p =>
             p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
           );

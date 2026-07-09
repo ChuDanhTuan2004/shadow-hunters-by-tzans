@@ -697,7 +697,7 @@ export function useGameplay({
     const currentPlayer = activeGame.players[getTurnIndex()];
     const charName = currentPlayer.character.name;
 
-    const needsTarget = charName.startsWith("Fuka") || charName.startsWith("Franklin") || charName.startsWith("Ellen") || charName.startsWith("George");
+    const needsTarget = charName.startsWith("Fuka") || charName.startsWith("Franklin") || charName.startsWith("Ellen") || charName.startsWith("George") || charName.startsWith("Mganga") || charName.startsWith("Helen");
     
     if (needsTarget && !targetPlayerId && !currentPlayer.hasUsedAbility && !currentPlayer.abilityDisabled) {
       setShowAbilityTargetDialog(true);
@@ -932,6 +932,37 @@ export function useGameplay({
 
     if (nextIndex < nextState.turnIndex) {
       nextState.roundNumber = (nextState.roundNumber || 1) + 1;
+
+      // Mganga poison ticks each round
+      const poisonedPlayers = nextState.players.filter(p => p.mgangaPoisoned && !p.isDead);
+      poisonedPlayers.forEach(victim => {
+        const newHp = Math.max(0, victim.currentHp - 1);
+        const isDead = newHp <= 0;
+        nextState.players = nextState.players.map(p =>
+          p.id === victim.id ? { ...p, currentHp: newHp, isDead, alignmentRevealed: isDead ? true : p.alignmentRevealed } : p
+        );
+        nextState.logs = [
+          createLog(`☠️ [Độc Dược Mganga] ${victim.name} chịu 1 sát thương từ độc!${isDead ? ` 💀 ${victim.name} tử trận! Thân phận: [${victim.character.name}] - Phe [${victim.character.alignment}].` : ""}`, "attack"),
+          ...nextState.logs
+        ];
+      });
+
+      if (poisonedPlayers.some(p => {
+        const newHp = Math.max(0, p.currentHp - 1);
+        return newHp <= 0;
+      })) {
+        const victoryResult = checkVictory(nextState.players);
+        if (null !== victoryResult) {
+          nextState.phase = "game_over";
+          nextState.winnerAlignment = victoryResult.winnerAlignment;
+          nextState.winnerPlayerIds = victoryResult.winnerPlayerIds;
+          nextState.players = nextState.players.map(p => ({ ...p, alignmentRevealed: true }));
+          nextState.logs = [
+            createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${victoryResult.winnerAlignment.join(", ")}!`, "system"),
+            ...nextState.logs
+          ];
+        }
+      }
     }
 
     nextState.turnIndex = nextIndex;
@@ -982,7 +1013,22 @@ export function useGameplay({
       }
     }
 
-    if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David")) {
+    if (nextPlayer.alignmentRevealed && nextPlayer.character.name.startsWith("Volkath") && !nextPlayer.isDead && !nextPlayer.abilityDisabled) {
+      const aliveShadows = nextState.players.filter(p => !p.isDead && p.character.alignment === Alignment.SHADOW).length;
+      const healAmount = aliveShadows + 2;
+      const targetHp = Math.min(nextPlayer.character.hp, nextPlayer.currentHp + healAmount);
+      if (targetHp > nextPlayer.currentHp) {
+        nextState.players = nextState.players.map(p =>
+          p.id === nextPlayer.id ? { ...p, currentHp: targetHp } : p
+        );
+        nextState.logs = [
+          createLog(`💀 [Bất Tử Volkath] Ma vương [${nextPlayer.name}] hồi ${healAmount} máu nhờ sức mạnh bóng tối! (${targetHp}/${nextPlayer.character.hp})`, "action"),
+          ...nextState.logs
+        ];
+      }
+    }
+
+    if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen")) {
       nextState.players = nextState.players.map(p =>
         p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
       );

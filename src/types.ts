@@ -65,6 +65,7 @@ export interface Player {
   killsCount?: number;
   agnesTargetPlayerId?: string | null;
   bryanKilledHp13?: boolean;
+  mgangaPoisoned?: boolean;
 }
 
 export interface GameLog {

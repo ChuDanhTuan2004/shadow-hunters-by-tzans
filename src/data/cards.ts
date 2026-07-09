@@ -52,6 +52,22 @@ export const CHARACTERS: Character[] = [
     abilityDesc: "Một lần: Được chơi thêm số lượt bằng số người đã chết hiện tại.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
+  {
+    name: "Mganga (Độc dược sư)",
+    alignment: Alignment.SHADOW,
+    hp: 8,
+    abilityName: "Độc dược",
+    abilityDesc: "Không giới hạn số lần dùng kỹ năng, thực hiện kỹ năng ở đầu lượt: Gây 1 sát thương mỗi vòng chơi cho 1 người được chỉ định. Hiệu ứng này không kết thúc khi Mganga tử trận.",
+    winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
+  },
+  {
+    name: "Volkath (Ma vương)",
+    alignment: Alignment.SHADOW,
+    hp: 10,
+    abilityName: "Bất tử",
+    abilityDesc: "Hồi [(Số lượng shadow còn sống trên bản đồ) + 2] máu mỗi lượt.",
+    winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
+  },
 
   // PHE HUNTER (Base Game)
   {
@@ -102,6 +118,22 @@ export const CHARACTERS: Character[] = [
     hp: 16,
     abilityName: "Áo giáp thép",
     abilityDesc: "Một lần: Sau khi kết thúc lượt, không nhận sát thương đến đầu lượt sau.",
+    winCondition: "Giết hết tất cả Shadow."
+  },
+  {
+    name: "Ilumia (Nữ chúa thánh quang)",
+    alignment: Alignment.HUNTER,
+    hp: 12,
+    abilityName: "Thánh quang",
+    abilityDesc: "Lập tức làm lộ tất cả Shadow trên bản đồ và gây 3 sát thương cho tất cả Shadow.",
+    winCondition: "Giết hết tất cả Shadow."
+  },
+  {
+    name: "Helen (Trị liệu sư)",
+    alignment: Alignment.HUNTER,
+    hp: 8,
+    abilityName: "Trị liệu",
+    abilityDesc: "Không giới hạn số lần dùng kỹ năng, thực hiện kỹ năng ở đầu lượt: Hồi 2 máu cho 1 người được chỉ định.",
     winCondition: "Giết hết tất cả Shadow."
   },
 
