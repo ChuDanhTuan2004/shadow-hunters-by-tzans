@@ -53,6 +53,9 @@ export function useGameplay({
   const [showLocationChoice, setShowLocationChoice] = useState(false);
   const [compassChoices, setCompassChoices] = useState<string[] | null>(null);
   const [showAbilityTargetDialog, setShowAbilityTargetDialog] = useState(false);
+  const [showCharacterList, setShowCharacterList] = useState(false);
+  const [showEquipmentList, setShowEquipmentList] = useState(false);
+  const [showCardList, setShowCardList] = useState(false);
 
   // Bot execution loop effects
   useEffect(() => {
@@ -994,6 +997,12 @@ export function useGameplay({
     handleActivateDavidAbility,
     showAbilityTargetDialog,
     setShowAbilityTargetDialog,
+    showCharacterList,
+    setShowCharacterList,
+    showEquipmentList,
+    setShowEquipmentList,
+    showCardList,
+    setShowCardList,
     handleRevealIdentity,
     handleStealEquipment,
     handleEndTurn,

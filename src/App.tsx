@@ -23,9 +23,12 @@ import GateSelectionDialog from "./components/dialogs/GateSelectionDialog";
 import DrawnCardModal from "./components/dialogs/DrawnCardModal";
 import LocationSelectDialog from "./components/dialogs/LocationSelectDialog";
 import AbilityTargetDialog from "./components/dialogs/AbilityTargetDialog";
+import CharacterListModal from "./components/dialogs/CharacterListModal";
+import EquipmentListModal from "./components/dialogs/EquipmentListModal";
+import CardListModal from "./components/dialogs/CardListModal";
 
 // Icons
-import { Shield, BookOpen, Settings, LogOut, RefreshCw, History } from "lucide-react";
+import { Shield, BookOpen, Settings, LogOut, RefreshCw, History, Sparkles } from "lucide-react";
 
 export default function App() {
   // Sync card database from Firestore on app mount
@@ -93,6 +96,12 @@ export default function App() {
     handleActivateDavidAbility,
     showAbilityTargetDialog,
     setShowAbilityTargetDialog,
+    showCharacterList,
+    setShowCharacterList,
+    showEquipmentList,
+    setShowEquipmentList,
+    showCardList,
+    setShowCardList,
     handleRevealIdentity,
     handleStealEquipment,
     handleEndTurn,
@@ -151,6 +160,9 @@ export default function App() {
             onStartSoloGame={handleStartSoloGame}
             onEnterRoom={handleEnterRoom}
             onOpenRules={() => setIsRulesOpen(true)}
+            onOpenCharacterList={() => setShowCharacterList(true)}
+            onOpenEquipmentList={() => setShowEquipmentList(true)}
+            onOpenCardList={() => setShowCardList(true)}
             initialView={lobbyInitialView}
           />
         )}
@@ -201,7 +213,7 @@ export default function App() {
             <div className="absolute inset-0 bg-neutral-950/60 pointer-events-none z-0" />
 
             {/* TOP BAR */}
-            <div className="relative z-10 flex items-center justify-between gap-4 border-b border-neutral-800/60 pb-4 w-full">
+            <div className="relative z-[100] flex items-center justify-between gap-4 border-b border-neutral-800/60 pb-4 w-full">
               {/* Left Logo Title */}
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-xs font-extrabold tracking-tight text-white uppercase sm:text-base">
@@ -209,41 +221,71 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Right: Rules, History & Settings links matching mockup */}
+              {/* Right: Settings button only */}
               <div className="flex items-center gap-3 text-[11px] sm:text-xs font-bold text-neutral-300 shrink-0">
-                {/* Rules button */}
-                <button
-                  onClick={() => setIsRulesOpen(true)}
-                  className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 py-1"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-[#7BA2BE]" />
-                  <span className="hidden xs:inline">Luật chơi</span>
-                </button>
-                <span className="text-neutral-850">|</span>
-
-                {/* History button */}
-                <button
-                  onClick={() => setShowHistoryDialog(true)}
-                  className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 py-1"
-                >
-                  <History className="w-3.5 h-3.5 text-[#7BA2BE]" />
-                  <span className="hidden xs:inline">Lịch sử</span>
-                </button>
-                <span className="text-neutral-850">|</span>
-
                 {/* Settings button container */}
                 <div className="relative">
                   <button
                     onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                    className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 py-1"
+                    className="hover:text-white hover:border-[#7BA2BE]/60 transition-all cursor-pointer flex items-center gap-2 py-2 px-4 border border-neutral-700 rounded-xl bg-neutral-900/60"
                   >
-                    <Settings className="w-3.5 h-3.5 text-[#7BA2BE]" />
-                    <span>Cài đặt</span>
+                    <Settings className="w-4 h-4 text-[#7BA2BE]" />
+                    <span className="text-xs font-bold text-neutral-200">Cài đặt</span>
                   </button>
                   {showSettingsMenu && (
                     <>
-                      <div className="fixed inset-0 z-40" onClick={() => setShowSettingsMenu(false)} />
-                      <div className="absolute top-full right-0 mt-2 w-44 bg-neutral-950 border border-neutral-800 rounded-xl shadow-2xl p-2 z-50 animate-fadeIn text-left">
+                      <div className="fixed inset-0 z-[9998]" onClick={() => setShowSettingsMenu(false)} />
+                      <div className="absolute top-full right-0 mt-2 w-52 bg-neutral-950 border border-neutral-800 rounded-xl shadow-2xl p-2 z-[9999] animate-fadeIn text-left">
+                        {/* Luật chơi */}
+                        <button
+                          onClick={() => {
+                            setShowSettingsMenu(false);
+                            setIsRulesOpen(true);
+                          }}
+                          className="w-full text-left py-2 px-3 hover:bg-neutral-800 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <BookOpen className="w-3.5 h-3.5 text-[#7BA2BE]" />
+                          Luật chơi
+                        </button>
+
+                        {/* Danh sách nhân vật */}
+                        <button
+                          onClick={() => {
+                            setShowSettingsMenu(false);
+                            setShowCharacterList(true);
+                          }}
+                          className="w-full text-left py-2 px-3 hover:bg-neutral-800 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Shield className="w-3.5 h-3.5 text-[#7BA2BE]" />
+                          Danh sách nhân vật
+                        </button>
+
+                        {/* Danh sách trang bị */}
+                        <button
+                          onClick={() => {
+                            setShowSettingsMenu(false);
+                            setShowEquipmentList(true);
+                          }}
+                          className="w-full text-left py-2 px-3 hover:bg-neutral-800 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Shield className="w-3.5 h-3.5 text-[#7BA2BE]" />
+                          Danh sách trang bị
+                        </button>
+
+                        {/* Danh sách thẻ bài */}
+                        <button
+                          onClick={() => {
+                            setShowSettingsMenu(false);
+                            setShowCardList(true);
+                          }}
+                          className="w-full text-left py-2 px-3 hover:bg-neutral-800 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-[#7BA2BE]" />
+                          Danh sách thẻ bài
+                        </button>
+
+                        {/* Separator + Thoát phòng */}
+                        <div className="border-t border-neutral-800 my-1" />
                         <button
                           onClick={() => {
                             setShowSettingsMenu(false);
@@ -288,7 +330,7 @@ export default function App() {
                 info: "ℹ️"
               };
               return (
-                 <div className="col-span-full w-full relative z-10">
+                <div className="col-span-full w-full relative z-10">
                   <div
                     onClick={() => setShowHistoryDialog(true)}
                     className={`px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border text-[10px] sm:text-xs font-semibold flex items-center gap-2 shadow-sm cursor-pointer ${logTypeStyles[latestLog.type] || "bg-neutral-950/60 border-l border-neutral-800 text-neutral-300 hover:bg-neutral-900/60 transition-colors"}`}
@@ -402,6 +444,21 @@ export default function App() {
           onCancel={handleCancelCard}
         />
       )}
+
+      <CharacterListModal
+        isOpen={showCharacterList}
+        onClose={() => setShowCharacterList(false)}
+      />
+
+      <EquipmentListModal
+        isOpen={showEquipmentList}
+        onClose={() => setShowEquipmentList(false)}
+      />
+
+      <CardListModal
+        isOpen={showCardList}
+        onClose={() => setShowCardList(false)}
+      />
 
       {activeGame && (
         <AbilityTargetDialog

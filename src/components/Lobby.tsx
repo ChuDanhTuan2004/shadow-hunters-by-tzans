@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Users, User, Shield, Globe, Lock, Play, Plus, ArrowRight, RefreshCw, Bot, Sparkles, MessageSquare, BookOpen, ArrowLeft } from "lucide-react";
+import { Users, User, Shield, Globe, Lock, Play, Plus, ArrowRight, RefreshCw, Bot, Sparkles, MessageSquare, BookOpen, ArrowLeft, Info } from "lucide-react";
 import { createGameRoom, joinGameRoom, getPublicRooms } from "../firebase";
 import { CHARACTERS } from "../data/cards";
 import { Alignment } from "../types";
@@ -14,6 +14,9 @@ interface LobbyProps {
   onStartSoloGame: (selectedCharName?: string, playerCount?: number, selectedAlignment?: Alignment) => void;
   onEnterRoom: (roomId: string) => void;
   onOpenRules: () => void;
+  onOpenCharacterList: () => void;
+  onOpenEquipmentList: () => void;
+  onOpenCardList: () => void;
   initialView?: "home" | "start";
 }
 
@@ -24,6 +27,9 @@ export default function Lobby({
   onStartSoloGame,
   onEnterRoom,
   onOpenRules,
+  onOpenCharacterList,
+  onOpenEquipmentList,
+  onOpenCardList,
   initialView = "home"
 }: LobbyProps) {
   const [lobbyView, setLobbyView] = useState<"home" | "start">(initialView);
@@ -35,6 +41,7 @@ export default function Lobby({
   // Trạng thái các Modal
   const [showConfirmBotModal, setShowConfirmBotModal] = useState(false);
   const [showNameInputModal, setShowNameInputModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   // Trạng thái cho chế độ Luyện tập Bot
   const [selectedPlayerCount, setSelectedPlayerCount] = useState(4);
@@ -197,13 +204,13 @@ export default function Lobby({
               START
             </button>
 
-            {/* Button 3: Rules (Icon only) */}
+            {/* Button 3: Info (Icon only) */}
             <button
-              onClick={onOpenRules}
-              title="Luật chơi"
+              onClick={() => setShowInfoModal(true)}
+              title="Thông tin"
               className="w-14 h-14 rounded-2xl bg-[#0a0c16]/90 border border-[#4437ac]/50 hover:border-[#7ba2be]/70 text-[#7ba2be] hover:text-white hover:bg-[#4437ac]/30 transition-all flex items-center justify-center cursor-pointer shadow-[0_0_20px_rgba(68,55,172,0.3)] active:scale-95 group"
             >
-              <BookOpen className="w-6 h-6 group-hover:scale-110 transition-transform" />
+              <Info className="w-6 h-6 group-hover:scale-110 transition-transform" />
             </button>
           </div>
 
@@ -675,6 +682,69 @@ export default function Lobby({
                 Xác Nhận
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= INFO CHOOSER MODAL ================= */}
+      {showInfoModal && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div
+            onClick={() => setShowInfoModal(false)}
+            className="fixed inset-0 z-40"
+          />
+          <div className="relative z-50 bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-sm shadow-2xl p-6 animate-slideUp space-y-4">
+            <h3 className="text-lg font-bold text-white text-center tracking-tight">
+              Thông tin
+            </h3>
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  setShowInfoModal(false);
+                  onOpenRules();
+                }}
+                className="w-full text-left py-3 px-4 bg-neutral-800/60 hover:bg-neutral-800 rounded-xl text-sm font-bold text-neutral-200 transition-all flex items-center gap-3 cursor-pointer border border-neutral-700/50"
+              >
+                <BookOpen className="w-5 h-5 text-[#7BA2BE]" />
+                Luật chơi
+              </button>
+              <button
+                onClick={() => {
+                  setShowInfoModal(false);
+                  onOpenCharacterList();
+                }}
+                className="w-full text-left py-3 px-4 bg-neutral-800/60 hover:bg-neutral-800 rounded-xl text-sm font-bold text-neutral-200 transition-all flex items-center gap-3 cursor-pointer border border-neutral-700/50"
+              >
+                <Shield className="w-5 h-5 text-[#7BA2BE]" />
+                Danh sách nhân vật
+              </button>
+              <button
+                onClick={() => {
+                  setShowInfoModal(false);
+                  onOpenEquipmentList();
+                }}
+                className="w-full text-left py-3 px-4 bg-neutral-800/60 hover:bg-neutral-800 rounded-xl text-sm font-bold text-neutral-200 transition-all flex items-center gap-3 cursor-pointer border border-neutral-700/50"
+              >
+                <Shield className="w-5 h-5 text-[#7BA2BE]" />
+                Danh sách trang bị
+              </button>
+              <button
+                onClick={() => {
+                  setShowInfoModal(false);
+                  onOpenCardList();
+                }}
+                className="w-full text-left py-3 px-4 bg-neutral-800/60 hover:bg-neutral-800 rounded-xl text-sm font-bold text-neutral-200 transition-all flex items-center gap-3 cursor-pointer border border-neutral-700/50"
+              >
+                <Sparkles className="w-5 h-5 text-[#7BA2BE]" />
+                Danh sách thẻ bài
+              </button>
+            </div>
+            <button
+              onClick={() => setShowInfoModal(false)}
+              className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 rounded-xl text-xs font-bold text-neutral-300 transition-all cursor-pointer border border-neutral-700/50"
+            >
+              Đóng
+            </button>
           </div>
         </div>
       )}
