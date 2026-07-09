@@ -37,8 +37,8 @@ export default function AbilityTargetDialog({
   if (charName.startsWith("Fuka")) {
     // Fuka: can target any alive player, including self
     targetablePlayers = activeGame.players.filter((p) => !p.isDead);
-  } else if (charName.startsWith("Franklin") || charName.startsWith("Ellen")) {
-    // Franklin, Ellen: target any alive player except self
+  } else if (charName.startsWith("Franklin") || charName.startsWith("Ellen") || charName.startsWith("George")) {
+    // Franklin, Ellen, George: target any alive player except self
     targetablePlayers = activeGame.players.filter((p) => !p.isDead && p.id !== playerId);
   }
 

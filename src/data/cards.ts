@@ -49,7 +49,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.SHADOW,
     hp: 14,
     abilityName: "Lượt bổ sung",
-    abilityDesc: "Một lần trong game: Được chơi thêm số lượt bằng số người đã chết hiện tại.",
+    abilityDesc: "Một lần: Được chơi thêm số lượt bằng số người đã chết hiện tại.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
 
@@ -57,7 +57,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Emi (Nữ Thần Không Gian)",
     alignment: Alignment.HUNTER,
-    hp: 12,
+    hp: 14,
     abilityName: "Dịch chuyển tức thời",
     abilityDesc: "Khi di chuyển: Được tự do chọn địa điểm đến thay vì phải lăn xúc xắc (Teleport).",
     winCondition: "Giết hết tất cả Shadow."
@@ -65,17 +65,17 @@ export const CHARACTERS: Character[] = [
   {
     name: "Franklin (Cơ giáp Sấm Sét)",
     alignment: Alignment.HUNTER,
-    hp: 12,
+    hp: 13,
     abilityName: "Phóng sét định điểm",
-    abilityDesc: "Một lần trong game: Chọn bất kỳ ai và gây sát thương bằng lắc 1 xúc xắc d6.",
+    abilityDesc: "Một lần: Chọn bất kỳ ai và gây 4 sát thương cố định.",
     winCondition: "Giết hết tất cả Shadow."
   },
   {
     name: "George (Thợ Săn Công Lý)",
     alignment: Alignment.HUNTER,
-    hp: 14,
+    hp: 9,
     abilityName: "Phát bắn chính nghĩa",
-    abilityDesc: "Một lần trong game: Chọn bất kỳ ai và gây sát thương bằng lắc 1 xúc xắc d4.",
+    abilityDesc: "Đầu lượt (trước khi lắc xúc xắc): Chọn bất kỳ ai và gây sát thương bằng lắc 1 xúc xắc d4 (không giới hạn số lần sử dụng).",
     winCondition: "Giết hết tất cả Shadow."
   },
 
@@ -92,14 +92,14 @@ export const CHARACTERS: Character[] = [
     name: "Fuka (Pháp Sư Thời Gian)",
     alignment: Alignment.HUNTER,
     hp: 12,
-    abilityName: "Trì hoãn thần thời",
-    abilityDesc: "Một lần: Lượt sau, đặt sát thương của bất kỳ người nào về 7.",
+    abilityName: "Thao túng thời gian",
+    abilityDesc: "Một lần: Chọn 1 người chơi, sát thương nhận vào của họ lập tức bị đặt về 7.",
     winCondition: "Giết hết tất cả Shadow."
   },
   {
     name: "Gregor (Hiệp Sĩ Thép)",
     alignment: Alignment.HUNTER,
-    hp: 14,
+    hp: 16,
     abilityName: "Áo giáp thép",
     abilityDesc: "Một lần: Sau khi kết thúc lượt, không nhận sát thương đến đầu lượt sau.",
     winCondition: "Giết hết tất cả Shadow."
@@ -111,7 +111,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.NEUTRAL,
     hp: 8,
     abilityName: "Ước nguyện an lành",
-    abilityDesc: "Một lần trong game: Hồi phục đầy máu (full heal).",
+    abilityDesc: "Một lần: Hồi phục đầy máu (full heal).",
     winCondition: "Sống sót đến khi có người khác thắng."
   },
   {

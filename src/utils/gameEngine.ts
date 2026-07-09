@@ -1302,10 +1302,10 @@ export function activateCharacterAbility(
       if (targetPlayerId) {
         const target = updatedPlayers.find(p => p.id === targetPlayerId);
         if (target && !target.isDead) {
-          const roll = Math.floor(Math.random() * 6) + 1;
+          const dmg = 4;
           player.hasUsedAbility = true;
-          target.currentHp = Math.max(0, target.currentHp - roll);
-          logs.push(createLog(`⚡ [Phóng Sét Định Điểm] Franklin [${player.name}] phóng sét trúng ${target.name} gây ${roll} sát thương (D6 = ${roll})!`, "action"));
+          target.currentHp = Math.max(0, target.currentHp - dmg);
+          logs.push(createLog(`⚡ [Phóng Sét Định Điểm] Franklin [${player.name}] phóng sét trúng ${target.name} gây ${dmg} sát thương cố định!`, "action"));
           if (target.currentHp <= 0) {
             target.isDead = true;
             target.alignmentRevealed = true;
@@ -1364,15 +1364,23 @@ export function activateCharacterAbility(
   } else if (charName.startsWith("Fuka")) {
     if (!player.hasUsedAbility && !player.abilityDisabled) {
       if (targetPlayerId) {
-        const fukaTarget = updatedPlayers.find(p => p.id === targetPlayerId);
         player.hasUsedAbility = true;
-        logs.push(createLog(`⏳ [Trì Hoãn Thần Thời] Fuka [${player.name}] chọn mục tiêu ${fukaTarget?.name || targetPlayerId}. Đầu lượt sau của họ, sát thương sẽ bị đặt về 7!`, "action"));
+        updatedPlayers = updatedPlayers.map(p => {
+          if (p.id !== targetPlayerId) return p;
+          const newHp = Math.max(0, p.character.hp - 7);
+          const isDead = newHp <= 0;
+          logs.push(createLog(`⏳ [Thao Túng Thời Gian] Fuka [${player.name}] lập tức đặt sát thương nhận vào của ${p.name} về 7! (HP hiện tại: ${newHp}/${p.character.hp})`, "action"));
+          if (isDead) {
+            logs.push(createLog(`☠️ ${p.name} tử trận do sát thương nhận vào bị đặt về 7! Thân phận: [${p.character.name}] - Phe [${p.character.alignment}].`, "reveal"));
+          }
+          return { ...p, currentHp: newHp, isDead, alignmentRevealed: isDead ? true : p.alignmentRevealed };
+        });
+
         const victoryResult = checkVictory(updatedPlayers);
         return {
           ...gameState,
           players: updatedPlayers,
           logs: [...logs, ...gameState.logs],
-          fukaTargetId: targetPlayerId,
           phase: victoryResult ? "game_over" : gameState.phase,
           winnerAlignment: victoryResult ? victoryResult.winnerAlignment : gameState.winnerAlignment,
           winnerPlayerIds: victoryResult ? victoryResult.winnerPlayerIds : gameState.winnerPlayerIds
@@ -2043,18 +2051,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
           ];
         }
 
-        // Fuka: đầu lượt của target, đặt HP về max-7
-        if (updatedState.fukaTargetId === nextPlayer.id && !nextPlayer.isDead) {
-          const newHp = Math.max(0, nextPlayer.character.hp - 7);
-          updatedState.players = updatedState.players.map(p =>
-            p.id === nextPlayer.id ? { ...p, currentHp: newHp } : p
-          );
-          updatedState.fukaTargetId = null;
-          updatedState.logs = [
-            createLog(`⏳ [Trì Hoãn Thần Thời Fuka] Hiệu ứng kích hoạt! Sát thương của ${nextPlayer.name} bị đặt về 7 (HP còn lại: ${newHp}).`, "action"),
-            ...updatedState.logs
-          ];
-        }
+
 
         // Catherine tự động hồi 1 HP khi bắt đầu lượt mới
         if (nextPlayer.character.name.startsWith("Catherine") && !nextPlayer.isDead && !nextPlayer.abilityDisabled) {
@@ -2070,7 +2067,12 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
           }
         }
 
-
+        // George: đầu lượt reset trạng thái sử dụng kỹ năng để bắn được mỗi lượt
+        if (nextPlayer.character.name.startsWith("George")) {
+          updatedState.players = updatedState.players.map(p =>
+            p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
+          );
+        }
 
         // chuyển lượt - no log
       }

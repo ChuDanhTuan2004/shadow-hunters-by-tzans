@@ -677,7 +677,7 @@ export function useGameplay({
     const currentPlayer = activeGame.players[getTurnIndex()];
     const charName = currentPlayer.character.name;
 
-    const needsTarget = charName.startsWith("Fuka") || charName.startsWith("Franklin") || charName.startsWith("Ellen");
+    const needsTarget = charName.startsWith("Fuka") || charName.startsWith("Franklin") || charName.startsWith("Ellen") || charName.startsWith("George");
     
     if (needsTarget && !targetPlayerId && !currentPlayer.hasUsedAbility && !currentPlayer.abilityDisabled) {
       setShowAbilityTargetDialog(true);
@@ -946,17 +946,7 @@ export function useGameplay({
       ];
     }
 
-    if (nextState.fukaTargetId === nextPlayer.id && !nextPlayer.isDead) {
-      const newHp = Math.max(0, nextPlayer.character.hp - 7);
-      nextState.players = nextState.players.map(p =>
-        p.id === nextPlayer.id ? { ...p, currentHp: newHp } : p
-      );
-      nextState.fukaTargetId = null;
-      nextState.logs = [
-        createLog(`⏳ [Trì Hoãn Thần Thời Fuka] Hiệu ứng kích hoạt! Sát thương của ${nextPlayer.name} bị đặt về 7 (HP còn lại: ${newHp}).`, "action"),
-        ...nextState.logs
-      ];
-    }
+
 
     if (nextPlayer.alignmentRevealed && nextPlayer.character.name.startsWith("Catherine") && !nextPlayer.isDead) {
       const targetHp = Math.min(nextPlayer.character.hp, nextPlayer.currentHp + 1);
@@ -969,6 +959,12 @@ export function useGameplay({
           ...nextState.logs
         ];
       }
+    }
+
+    if (nextPlayer.character.name.startsWith("George")) {
+      nextState.players = nextState.players.map(p =>
+        p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
+      );
     }
 
 

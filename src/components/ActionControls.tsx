@@ -91,22 +91,10 @@ export default function ActionControls({
                       ))}
                     </select>
 
-                    {currentTurnPlayer.character.name.startsWith("George") && currentTurnPlayer.alignmentRevealed && !currentTurnPlayer.hasUsedAbility && (
-                      <label className="flex items-center gap-2 cursor-pointer py-1 text-xs text-amber-400 select-none">
-                        <input
-                          type="checkbox"
-                          checked={activeGeorgeAbility}
-                          onChange={(e) => setActiveGeorgeAbility(e.target.checked)}
-                          className="rounded border-neutral-800 accent-amber-550"
-                        />
-                        💥 Phát Bắn Chính Nghĩa (+D4 sát thương)
-                      </label>
-                    )}
-
                     <button
                       onClick={() => {
                         if (activeAttackTargetId) {
-                          onAttackPlayer(activeAttackTargetId, activeGeorgeAbility);
+                          onAttackPlayer(activeAttackTargetId, false);
                           setActiveAttackTargetId("");
                           setActiveGeorgeAbility(false);
                         }
@@ -373,8 +361,8 @@ export default function ActionControls({
             (currentTurnPlayer.character.name.startsWith("Franklin") ||
               currentTurnPlayer.character.name.startsWith("Allie") ||
               currentTurnPlayer.character.name.startsWith("Agnes") ||
-              currentTurnPlayer.character.name.startsWith("Fuka") ||
-              currentTurnPlayer.character.name.startsWith("Ellen")) &&
+              currentTurnPlayer.character.name.startsWith("Ellen") ||
+              (currentTurnPlayer.character.name.startsWith("George") && "roll" === activeGame.phase)) &&
             !currentTurnPlayer.hasUsedAbility &&
             !currentTurnPlayer.abilityDisabled
           ) {
