@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Heart, Sparkles, Eye } from "lucide-react";
 import { Player, Alignment, CardType } from "../types";
-import { getCardById } from "../data/cards";
+import { GameCard, getCardById } from "../data/cards";
+import CardDetailModal from "./dialogs/CardDetailModal";
 
 interface HpTrackProps {
   players: Player[];
@@ -9,6 +10,8 @@ interface HpTrackProps {
 }
 
 export default function HpTrack({ players, currentPlayerId }: HpTrackProps) {
+  const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
+
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 space-y-4 font-sans h-full">
       <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest pl-1 border-b border-neutral-800 pb-2 flex items-center gap-2">
@@ -116,16 +119,17 @@ export default function HpTrack({ players, currentPlayerId }: HpTrackProps) {
                   {p.equipments.map((eqId, eqIdx) => {
                     const card = getCardById(eqId);
                     return card ? (
-                      <span 
+                      <button
                         key={eqIdx}
-                        className={`text-[9px] font-bold px-2 py-0.5 rounded border ${
-                          card.type === CardType.LIGHT 
-                            ? "bg-blue-950/10 text-blue-300 border-blue-900/30" 
-                            : "bg-orange-950/10 text-orange-300 border-orange-900/30"
+                        onClick={() => setSelectedCard(card)}
+                        className={`text-[9px] font-bold px-2 py-0.5 rounded border transition-all hover:brightness-125 hover:scale-105 ${
+                          card.type === CardType.LIGHT
+                            ? "bg-blue-950/10 text-blue-300 border-blue-900/30 hover:bg-blue-950/20"
+                            : "bg-orange-950/10 text-orange-300 border-orange-900/30 hover:bg-orange-950/20"
                         }`}
                       >
                         ⚔️ {card.name}
-                      </span>
+                      </button>
                     ) : null;
                   })}
                 </div>
@@ -164,6 +168,7 @@ export default function HpTrack({ players, currentPlayerId }: HpTrackProps) {
           );
         })}
       </div>
+      <CardDetailModal card={selectedCard} onClose={() => setSelectedCard(null)} />
     </div>
   );
 }

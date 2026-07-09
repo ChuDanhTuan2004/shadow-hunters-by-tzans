@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Alignment, CardType, Player } from "../../types";
-import { getCardById } from "../../data/cards";
+import { GameCard, getCardById } from "../../data/cards";
+import CardDetailModal from "./CardDetailModal";
 
 interface PlayerDetailDialogProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ export default function PlayerDetailDialog({
   player,
   playerId
 }: PlayerDetailDialogProps) {
+  const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
+
   if (!isOpen || !player) return null;
 
   const isSelfOrRevealed = player.id === playerId || player.alignmentRevealed || player.isDead;
@@ -125,15 +128,17 @@ export default function PlayerDetailDialog({
                 {player.equipments.map((eqId, eqIdx) => {
                   const card = getCardById(eqId);
                   return card ? (
-                    <span
+                    <button
                       key={eqIdx}
-                      className={`text-[9px] font-bold px-2 py-0.5 rounded border ${card.type === CardType.LIGHT
-                        ? "bg-blue-950/10 text-blue-300 border-blue-900/30"
-                        : "bg-orange-950/10 text-orange-300 border-orange-900/30"
-                        }`}
+                      onClick={() => setSelectedCard(card)}
+                      className={`text-[9px] font-bold px-2 py-0.5 rounded border cursor-pointer transition-all hover:brightness-125 hover:scale-105 ${
+                        card.type === CardType.LIGHT
+                          ? "bg-blue-950/10 text-blue-300 border-blue-900/30 hover:bg-blue-950/20"
+                          : "bg-orange-950/10 text-orange-300 border-orange-900/30 hover:bg-orange-950/20"
+                      }`}
                     >
                       ⚔️ {card.name}
-                    </span>
+                    </button>
                   ) : null;
                 })}
               </div>
@@ -143,6 +148,8 @@ export default function PlayerDetailDialog({
           </div>
         </div>
       </div>
+
+      <CardDetailModal card={selectedCard} onClose={() => setSelectedCard(null)} />
     </div>
   );
 }

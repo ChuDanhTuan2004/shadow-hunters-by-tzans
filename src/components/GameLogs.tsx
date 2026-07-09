@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { MessageSquare, Calendar, HelpCircle, Swords, Award, AlertCircle, RefreshCw, X, ShieldAlert, Heart, Sparkles } from "lucide-react";
-import { GameLog, CardType } from "../types";
+import { MessageSquare, Calendar, HelpCircle, Swords, Award, AlertCircle, RefreshCw, ShieldAlert, Heart } from "lucide-react";
+import { GameLog } from "../types";
 import { DECK_HERMIT, DECK_LIGHT, DECK_SHADOW, GameCard } from "../data/cards";
+import CardDetailModal from "./dialogs/CardDetailModal";
 
 interface GameLogsProps {
   logs: GameLog[];
@@ -164,88 +165,7 @@ export default function GameLogs({ logs }: GameLogsProps) {
         )}
       </div>
 
-      {/* CARD DETAILS MODAL */}
-      {selectedCard && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-neutral-950 border border-neutral-800 p-6 rounded-3xl w-full max-w-sm shadow-2xl relative space-y-4 overflow-hidden">
-            
-            {/* Lớp màu phát sáng tùy thuộc hệ thẻ */}
-            <div 
-              className={`absolute top-0 left-0 w-full h-1.5 ${
-                selectedCard.type === CardType.HERMIT 
-                  ? "bg-emerald-500" 
-                  : selectedCard.type === CardType.LIGHT 
-                    ? "bg-blue-500" 
-                    : "bg-orange-500"
-              }`}
-            />
-
-            {/* Nút đóng */}
-            <button
-              onClick={() => setSelectedCard(null)}
-              className="absolute top-4 right-4 p-1 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-400 hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            {/* Header chi tiết */}
-            <div className="text-center space-y-1 pt-2">
-              <span 
-                className={`text-[9px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-widest border ${
-                  selectedCard.type === CardType.HERMIT
-                    ? "bg-emerald-950/40 text-emerald-400 border-emerald-900/40"
-                    : selectedCard.type === CardType.LIGHT
-                      ? "bg-blue-950/40 text-blue-400 border-blue-900/40"
-                      : "bg-orange-950/40 text-orange-400 border-orange-900/40"
-                }`}
-              >
-                {selectedCard.type === CardType.HERMIT 
-                  ? "Bộ Bài Ẩn Sĩ (Hermit)" 
-                  : selectedCard.type === CardType.LIGHT 
-                    ? "Bộ Bài Ánh Sáng (Light)" 
-                    : "Bộ Bài Bóng Tối (Shadow)"}
-              </span>
-              <h3 className="text-base sm:text-lg font-bold text-white tracking-tight pt-1">
-                {selectedCard.name}
-              </h3>
-              <p className="text-[10px] text-neutral-500">
-                {selectedCard.isEquipment ? "🛡️ Thẻ Trang Bị Hộ Thân" : "⚡ Thẻ Vật Phẩm Một Lần"}
-              </p>
-            </div>
-
-            {/* Content chi tiết */}
-            <div className="bg-neutral-900/60 rounded-2xl border border-neutral-900 p-4 space-y-3.5">
-              <div className="space-y-1">
-                <span className="text-[9px] text-neutral-500 block font-semibold uppercase tracking-wider">
-                  Mô tả thẻ bài:
-                </span>
-                <p className="text-xs text-neutral-200 leading-relaxed font-medium">
-                  {selectedCard.description}
-                </p>
-              </div>
-
-              <div className="space-y-1 border-t border-neutral-800 pt-3">
-                <span className="text-[9px] text-rose-400 font-bold block uppercase tracking-wider flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Hiệu ứng kích hoạt:
-                </span>
-                <p className="text-xs text-neutral-300 leading-relaxed">
-                  {selectedCard.effectText}
-                </p>
-              </div>
-            </div>
-
-            {/* Nút đóng ở dưới */}
-            <button
-              onClick={() => setSelectedCard(null)}
-              className="w-full py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-xl text-xs font-bold text-neutral-300 hover:text-white transition-all shadow"
-            >
-              ĐÓNG CỬA SỔ
-            </button>
-
-          </div>
-        </div>
-      )}
+      <CardDetailModal card={selectedCard} onClose={() => setSelectedCard(null)} />
 
     </div>
   );
