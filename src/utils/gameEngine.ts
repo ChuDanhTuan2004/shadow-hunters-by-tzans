@@ -709,11 +709,10 @@ export function performAttack(
     }
 
     // Kích hoạt nội tại Phản công tức thời của Werewolf (có thể lật ngửa để dùng, hoặc đã lật rồi)
-    // Werewolf counterattack bằng đòn tấn công thường (|D6-D4|) khi bị tấn công
+    // Werewolf counterattack phản lại 100% sát thương nhận vào
     if (currTarget.alignmentRevealed && currTarget.character.name.startsWith("Werewolf") && !currTarget.isDead && 0 < finalDamage && !attacker.isDead && !currTarget.abilityDisabled) {
-      const { d6: wD6, d4: wD4, damage: wDmg } = rollForAttack();
-      const counterDamage = Math.max(0, wDmg);
-      logs.push(createLog(`🐺 [Phản Công Tức Thời] Người Sói [${currTarget.name}] counterattack! D6:${wD6} D4:${wD4} → ${counterDamage} sát thương lên ${attacker.name}!`, "action"));
+      const counterDamage = finalDamage;
+      logs.push(createLog(`🐺 [Phản Công Tức Thời] Người Sói [${currTarget.name}] phản đòn! Gây ngược lại 100% sát thương → ${counterDamage} sát thương lên ${attacker.name}!`, "action"));
       if (0 < counterDamage) {
         attacker.currentHp = Math.max(0, attacker.currentHp - counterDamage);
         if (0 >= attacker.currentHp) {
@@ -721,8 +720,6 @@ export function performAttack(
           attacker.alignmentRevealed = true;
           logs.push(createLog(`☠️ [${attacker.name}] chết do phản đòn của Người Sói! Thân phận thực sự: [${attacker.character.name}] - Phe [${attacker.character.alignment}].`, "reveal"));
         }
-      } else {
-        logs.push(createLog(`💨 Đòn phản công của Người Sói [${currTarget.name}] bị HỤT!`, "action"));
       }
     }
   });
@@ -1485,6 +1482,67 @@ export function activateCharacterAbility(
 }
 
 /**
+ * Ultrasoul: Khi bất kỳ người chơi nào khác phe bước vào Underworld Gate (loc_fountain),
+ * họ sẽ nhận ngay 3 sát thương nếu Ultrasoul đã lộ diện và không bị khóa kỹ năng.
+ */
+export function checkUltrasoulTrap(state: GameState, movingPlayerId: string, targetLocId: string): GameState {
+  if ("loc_fountain" !== targetLocId) return state;
+
+  const movingPlayer = state.players.find(p => p.id === movingPlayerId);
+  if (!movingPlayer || movingPlayer.isDead) return state;
+
+  let nextState = { ...state };
+
+  // Tìm tất cả người chơi Ultrasoul còn sống, đã lộ diện, và không bị khóa kỹ năng (Yoda style)
+  const ultrasouls = nextState.players.filter(p =>
+    !p.isDead &&
+    p.character.name.startsWith("Ultrasoul") &&
+    true === p.alignmentRevealed &&
+    true !== p.abilityDisabled
+  );
+
+  ultrasouls.forEach(ultrasoul => {
+    // Nếu người di chuyển khác phe với Ultrasoul
+    if (movingPlayer.character.alignment !== ultrasoul.character.alignment) {
+      nextState.players = nextState.players.map(p => {
+        if (p.id !== movingPlayerId) return p;
+        const newHp = Math.max(0, p.currentHp - 3);
+        const isDead = newHp <= 0;
+        
+        nextState.logs = [
+          createLog(`🔥 [Hào Quang Địa Ngục] ${movingPlayer.name} bước vào Underworld Gate, kích hoạt bẫy của Ultrasoul [${ultrasoul.name}] và nhận 3 sát thương!`, "attack"),
+          ...nextState.logs
+        ];
+
+        if (isDead) {
+          nextState.logs = [
+            createLog(`☠️ ${movingPlayer.name} bị thiêu đốt bởi Hào Quang Địa Ngục! Thân phận: [${p.character.name}] - Phe [${p.character.alignment}].`, "reveal"),
+            ...nextState.logs
+          ];
+        }
+
+        return { ...p, currentHp: newHp, isDead, alignmentRevealed: isDead ? true : p.alignmentRevealed };
+      });
+
+      // Kiểm tra điều kiện thắng sau khi người chơi nhận sát thương
+      const victoryResult = checkVictory(nextState.players);
+      if (null !== victoryResult) {
+        nextState.phase = "game_over";
+        nextState.winnerAlignment = victoryResult.winnerAlignment;
+        nextState.winnerPlayerIds = victoryResult.winnerPlayerIds;
+        nextState.players = nextState.players.map(p => ({ ...p, alignmentRevealed: true }));
+        nextState.logs = [
+          createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${victoryResult.winnerAlignment.join(", ")}!`, "system"),
+          ...nextState.logs
+        ];
+      }
+    }
+  });
+
+  return nextState;
+}
+
+/**
  * Trí Tuệ Nhân Tạo (Bot) Tự Động Quyết Định Lượt Đi
  */
 export function executeBotTurn(gameState: GameState, botId: string): GameState {
@@ -1499,36 +1557,6 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
 
   // 1. GIAI ĐOẠN ĐỔ XÚC XẮC DI CHUYỂN
   if (updatedState.phase === "roll") {
-    // Ultrasoul: đầu lượt gây 3 sát thương cho người ở Underworld Gate (loc_fountain)
-    if (currentBot.alignmentRevealed && botChar.startsWith("Ultrasoul") && !currentBot.abilityDisabled) {
-      const gateVictims = updatedState.players.filter(p =>
-        p.id !== botId && !p.isDead && p.locationId === "loc_fountain"
-      );
-      gateVictims.forEach(victim => {
-        updatedState.players = updatedState.players.map(p => {
-          if (p.id !== victim.id) return p;
-          const newHp = Math.max(0, p.currentHp - 3);
-          const isDead = newHp <= 0;
-          updatedState.logs = [
-            createLog(`👻 [Hào Quang Địa Ngục] Ultrasoul [${botName}] gây 3 sát thương lên ${p.name} đang đứng ở Underworld Gate!`, "attack"),
-            ...updatedState.logs
-          ];
-          if (isDead) {
-            updatedState.logs = [
-              createLog(`☠️ ${p.name} bị thiêu đốt bởi Hào Quang Địa Ngục! Thân phận: [${p.character.name}] - Phe [${p.character.alignment}].`, "reveal"),
-              ...updatedState.logs
-            ];
-          }
-          return { ...p, currentHp: newHp, isDead, alignmentRevealed: isDead ? true : p.alignmentRevealed };
-        });
-      });
-      if (0 === gateVictims.length) {
-        updatedState.logs = [
-          createLog(`👻 [Hào Quang Địa Ngục] Không có ai đứng ở Underworld Gate, Ultrasoul [${botName}] không gây sát thương.`, "info"),
-          ...updatedState.logs
-        ];
-      }
-    }
 
     // Unknown: Bot không di chuyển (Nói dối - ẩn danh hoàn toàn, không cần lật thân phận)
     const canUseUnknown = botChar.startsWith("Unknown") && !currentBot.abilityDisabled;
@@ -1539,24 +1567,20 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
       let rollResult = rollForMovement();
       let chosenLocId = "";
 
-      if (botChar.startsWith("Emi") && true === currentBot.alignmentRevealed && false === currentBot.abilityDisabled) {
-        const otherLocs = LOCATIONS.filter(l => l.id !== currentBot.locationId);
-        if (otherLocs.length > 0) {
-          const chosen = otherLocs[Math.floor(Math.random() * otherLocs.length)];
-          chosenLocId = chosen.id;
-          rollResult = { total: 0, d6: 0, d4: 0 };
-          updatedState.logs = [
-            createLog(`🔮 Bot Emi [${botName}] kích hoạt Dịch Chuyển Tức Thời, tự chọn di chuyển đến [${chosen.name}]!`, "action"),
-            ...updatedState.logs
-          ];
-        }
+      if (botChar.startsWith("Emi") && true === currentBot.alignmentRevealed && true !== currentBot.abilityDisabled) {
+        const chosen = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
+        chosenLocId = chosen.id;
+        rollResult = { total: 7, d6: 4, d4: 3 };
+        updatedState.logs = [
+          createLog(`🔮 Bot Emi [${botName}] kích hoạt Dịch Chuyển Tức Thời, tự chọn di chuyển đến [${chosen.name}]!`, "action"),
+          ...updatedState.logs
+        ];
       }
 
       if (!chosenLocId) {
         if (rollResult.total === 7) {
-          // Thích đi đâu thì đi, loại trừ ô hiện tại
-          const otherLocs = LOCATIONS.filter(l => l.id !== currentBot.locationId);
-          const chosen = otherLocs[Math.floor(Math.random() * otherLocs.length)];
+          // Thích đi đâu thì đi
+          const chosen = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
           chosenLocId = chosen.id;
           updatedState.logs = [
             createLog(`🎲 Bot [${botName}] đổ ra số 7 may mắn! Tự chọn di chuyển đến ${chosen.name}.`, "action"),
@@ -1581,6 +1605,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
       updatedState.players = updatedState.players.map(p =>
         p.id === botId ? { ...p, locationId: chosenLocId } : p
       );
+      updatedState = checkUltrasoulTrap(updatedState, botId, chosenLocId);
 
       updatedState.rolledDice = rollResult;
     } else {
@@ -2045,11 +2070,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
           }
         }
 
-        // Ultrasoul: đầu lượt gây 3 sát thương cho người ở Underworld Gate (loc_fountain) - player turn
-        if (nextPlayer.character.name.startsWith("Ultrasoul") && !nextPlayer.isDead && !nextPlayer.isBot) {
-          // Với người chơi thật, Ultrasoul effect được xử lý ở App.tsx khi bắt đầu lượt
-          // Với Bot đã được xử lý ở giai đoạn roll ở trên
-        }
+
 
         // chuyển lượt - no log
       }

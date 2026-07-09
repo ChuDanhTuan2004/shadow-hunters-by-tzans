@@ -5,7 +5,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Unknown (Bóng Ma Vô Diện)",
     alignment: Alignment.SHADOW,
-    hp: 11,
+    hp: 14,
     abilityName: "Nói dối",
     abilityDesc: "Khi nhận Hermit Card, có thể nói dối (không cần lật ngửa thân phận).",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
@@ -21,9 +21,9 @@ export const CHARACTERS: Character[] = [
   {
     name: "Werewolf (Người Sói)",
     alignment: Alignment.SHADOW,
-    hp: 14,
+    hp: 11,
     abilityName: "Phản công tức thời",
-    abilityDesc: "Khi bị người khác attack: Có thể counterattack ngay lập tức (có thể lật ngửa để dùng).",
+    abilityDesc: "Khi bị người khác attack: Phản công ngay lập tức với tỷ lệ thành công 100% (gây ra lượng sát thương đúng bằng lượng sát thương vừa nhận).",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
 
@@ -33,13 +33,13 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.SHADOW,
     hp: 11,
     abilityName: "Hào quang địa ngục",
-    abilityDesc: "Đầu lượt: Gây 3 sát thương cho bất kỳ người nào đang đứng ở Underworld Gate.",
+    abilityDesc: "Bất kỳ người chơi nào khác phe khi di chuyển bước vào Underworld Gate: Nhận ngay 3 sát thương.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
   {
     name: "Valkyrie (Nữ Chiến Binh)",
     alignment: Alignment.SHADOW,
-    hp: 13,
+    hp: 14,
     abilityName: "Đòn chém định mệnh",
     abilityDesc: "Attack dùng chỉ xúc xắc d4 (không thể fail, damage cố định theo d4).",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
@@ -57,9 +57,9 @@ export const CHARACTERS: Character[] = [
   {
     name: "Emi (Nữ Thần Không Gian)",
     alignment: Alignment.HUNTER,
-    hp: 10,
+    hp: 12,
     abilityName: "Dịch chuyển tức thời",
-    abilityDesc: "Khi di chuyển: Có thể di chuyển đến khu vực liền kề mà không cần lắc xúc xắc (Teleport).",
+    abilityDesc: "Khi di chuyển: Được tự do chọn địa điểm đến thay vì phải lăn xúc xắc (Teleport).",
     winCondition: "Giết hết tất cả Shadow."
   },
   {

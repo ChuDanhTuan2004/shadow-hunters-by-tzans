@@ -129,7 +129,7 @@ export function useGameSession() {
         setActiveGame(updatedState);
 
         // Chuyển sang màn hình chơi khi host khai chiến (phase chuyển sang roll/action)
-        if ("waiting_room" === view && "waiting" !== updatedState.phase) {
+        if ("waiting_room" === view && "lobby" !== updatedState.phase) {
           setView("playing");
         }
       });

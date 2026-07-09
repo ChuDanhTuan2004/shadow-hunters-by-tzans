@@ -14,7 +14,8 @@ import {
   executeBotTurn,
   createLog,
   checkVictory,
-  drawCardFromDeck
+  drawCardFromDeck,
+  checkUltrasoulTrap
 } from "../utils/gameEngine";
 
 interface UseGameplayParams {
@@ -98,6 +99,7 @@ export function useGameplay({
   }, [gameMode, roomId]);
 
 
+
   // Help calculate turn index safe guard
   const getTurnIndex = () => (activeGame ? activeGame.turnIndex : 0);
 
@@ -169,12 +171,15 @@ export function useGameplay({
     nextState.diceAnimState = null;
 
     // Emi: Dịch chuyển tức thời khi đã lộ diện và không bị khóa kỹ năng (Yoda style)
-    if (currentPlayer.character.name.startsWith("Emi") && true === currentPlayer.alignmentRevealed && false === currentPlayer.abilityDisabled) {
+    if (currentPlayer.character.name.startsWith("Emi") && true === currentPlayer.alignmentRevealed && true !== currentPlayer.abilityDisabled) {
+      const rollResult = { total: 7, d6: 4, d4: 3 };
+      nextState.rolledDice = rollResult;
+
       setShowLocationChoice(true);
       setCompassChoices(null);
 
       nextState.logs = [
-        createLog(`🔮 ${currentPlayer.name} kích hoạt Dịch Chuyển Tức Thời! Vui lòng chọn địa điểm di chuyển tự do.`, "action"),
+        createLog(`🎲 Emi [${currentPlayer.name}] kích hoạt Nữ Thần Không Gian! Tung xúc xắc luôn ra số 7 may mắn, tự do chọn địa điểm di chuyển.`, "action"),
         ...nextState.logs
       ];
 
@@ -277,6 +282,7 @@ export function useGameplay({
       nextState.players = nextState.players.map(p =>
         p.id === currentPlayer.id ? { ...p, locationId: targetLocId } : p
       );
+      nextState = checkUltrasoulTrap(nextState, currentPlayer.id, targetLocId);
       nextState.rolledDice = rollResult;
       nextState.phase = "action";
       nextState.drawnCardId = null;
@@ -335,7 +341,7 @@ export function useGameplay({
     }
   };
 
-  // 4. Lựa chọn địa điểm (Compass / 7 / s5)
+  // 4. Lựa chọn địa điểm (Compass / 7 / s5 / Emi)
   const handleLocationChoice = (locId: string) => {
     if (null === activeGame) return;
     let nextState = { ...activeGame };
@@ -345,6 +351,7 @@ export function useGameplay({
     nextState.players = nextState.players.map(p =>
       p.id === currentPlayer.id ? { ...p, locationId: locId } : p
     );
+    nextState = checkUltrasoulTrap(nextState, currentPlayer.id, locId);
 
     nextState.phase = "action";
     nextState.drawnCardId = null;
@@ -374,6 +381,14 @@ export function useGameplay({
     }
 
     const isCompassMove = null !== compassChoices;
+    const isEmiTeleport = currentPlayer.character.name.startsWith("Emi") && true === currentPlayer.alignmentRevealed && true !== currentPlayer.abilityDisabled;
+
+    let logAction = `🏃 ${currentPlayer.name} quyết định di chuyển đến [${finalLoc.name}].`;
+    if (isCompassMove) {
+      logAction = `🧭 ${currentPlayer.name} sử dụng La Bàn Thần Bí di chuyển đến [${finalLoc.name}].`;
+    } else if (isEmiTeleport) {
+      logAction = `🔮 ${currentPlayer.name} kích hoạt Dịch Chuyển Tức Thời, di chuyển đến [${finalLoc.name}].`;
+    }
 
     if (null !== drawnCardId && null !== deckType) {
       nextState.drawnCardId = drawnCardId;
@@ -381,34 +396,19 @@ export function useGameplay({
       const cardName = card ? card.name : "thẻ bài";
       if (CardType.HERMIT === deckType) {
         nextState.logs = [
-          createLog(
-            isCompassMove
-              ? `🧭 ${currentPlayer.name} sử dụng La Bàn Thần Bí di chuyển đến [${finalLoc.name}].`
-              : `🏃 ${currentPlayer.name} quyết định di chuyển đến [${finalLoc.name}].`,
-            "info"
-          ),
+          createLog(logAction, "info"),
           ...nextState.logs
         ];
       } else {
         nextState.logs = [
           createLog(`🗃️ ${currentPlayer.name} đã rút thẻ [${cardName}] thuộc Bộ bài ${CardType.LIGHT === deckType ? "Ánh Sáng" : "Bóng Tối"}.`, "info"),
-          createLog(
-            isCompassMove
-              ? `🧭 ${currentPlayer.name} sử dụng La Bàn Thần Bí di chuyển đến [${finalLoc.name}].`
-              : `🏃 ${currentPlayer.name} quyết định di chuyển đến [${finalLoc.name}].`,
-            "info"
-          ),
+          createLog(logAction, "info"),
           ...nextState.logs
         ];
       }
     } else {
       nextState.logs = [
-        createLog(
-          isCompassMove
-            ? `🧭 ${currentPlayer.name} sử dụng La Bàn Thần Bí di chuyển đến [${finalLoc.name}].`
-            : `🏃 ${currentPlayer.name} quyết định di chuyển đến [${finalLoc.name}].`,
-          "info"
-        ),
+        createLog(logAction, "info"),
         ...nextState.logs
       ];
     }
@@ -769,7 +769,7 @@ export function useGameplay({
 
     if ("solo" === gameMode) {
       setView("lobby");
-      setLobbyInitialView("start");
+      setLobbyInitialView("home");
       setGameMode(null);
       setRoomId(null);
       setActiveGame(null);
@@ -839,6 +839,7 @@ export function useGameplay({
 
   // 17. Thoát khỏi phòng
   const handleLeaveGame = async () => {
+    const isSolo = "solo" === gameMode;
     if ("multiplayer" === gameMode && null !== roomId && null !== activeGame) {
       const isHost = playerId === activeGame.players[0]?.id;
       if (true === isHost) {
@@ -861,7 +862,7 @@ export function useGameplay({
     }
 
     setView("lobby");
-    setLobbyInitialView("start");
+    setLobbyInitialView(isSolo ? "home" : "start");
     setGameMode(null);
     setRoomId(null);
     setActiveGame(null);
@@ -969,6 +970,8 @@ export function useGameplay({
         ];
       }
     }
+
+
 
     return nextState;
   };

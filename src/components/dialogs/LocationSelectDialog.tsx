@@ -74,23 +74,23 @@ export default function LocationSelectDialog({
                 Dịch Chuyển Cổng Bóng Tối
               </h3>
               <p className="text-[11px] sm:text-xs text-neutral-400 leading-relaxed">
-                Hãy click chọn 1 địa điểm bất kỳ dưới đây để dịch chuyển token đến đó! (Trừ vị trí hiện tại của bạn)
+                Hãy click chọn 1 địa điểm bất kỳ dưới đây để dịch chuyển token đến đó!
               </p>
             </>
           ) : (
             <>
               <span className="text-[9px] border px-2.5 py-0.5 rounded-full font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                {activeGame.players[activeGame.turnIndex]?.character.name.startsWith("Emi") && true === activeGame.players[activeGame.turnIndex]?.alignmentRevealed && false === activeGame.players[activeGame.turnIndex]?.abilityDisabled
-                  ? "Dịch Chuyển Tức Thời (Emi)"
+                {activeGame.players[activeGame.turnIndex]?.character.name.startsWith("Emi") && true === activeGame.players[activeGame.turnIndex]?.alignmentRevealed && true !== activeGame.players[activeGame.turnIndex]?.abilityDisabled
+                  ? "Dịch Chuyển Tức Thời"
                   : "Đổ Ra Số 7 May Mắn"}
               </span>
               <h3 className="text-sm sm:text-lg font-bold text-white tracking-tight pt-1">
-                {activeGame.players[activeGame.turnIndex]?.character.name.startsWith("Emi") && true === activeGame.players[activeGame.turnIndex]?.alignmentRevealed && false === activeGame.players[activeGame.turnIndex]?.abilityDisabled
-                  ? "Chọn Điểm Dịch Chuyển Của Emi"
+                {activeGame.players[activeGame.turnIndex]?.character.name.startsWith("Emi") && true === activeGame.players[activeGame.turnIndex]?.alignmentRevealed && true !== activeGame.players[activeGame.turnIndex]?.abilityDisabled
+                  ? "Nữ thần không gian"
                   : "Chọn Điểm Dịch Chuyển Tự Do"}
               </h3>
               <p className="text-[11px] sm:text-xs text-neutral-400 leading-relaxed">
-                Hãy click chọn 1 địa điểm bất kỳ dưới đây để dịch chuyển token đến đó! (Trừ vị trí hiện tại của bạn)
+                Hãy click chọn 1 địa điểm bất kỳ dưới đây để dịch chuyển token đến đó!
               </p>
             </>
           )}
@@ -128,7 +128,7 @@ export default function LocationSelectDialog({
         {/* LƯỚI 3 CỘT - GIỮ NGUYÊN CẤU TRÚC CẶP ĐÔI NHƯ BẢNG CHƠI */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
           {areaGroups.map(group => (
-            <div key={group.label} className={`rounded-xl border p-2.5 sm:p-3 space-y-2 sm:space-y-3 ${group.color}`}>
+            <div key={group.label} className={`rounded-xl border p-2.5 sm:p-3 ${group.color} flex flex-col gap-2 sm:gap-3`}>
               {/* Area header */}
               <div className="flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full ${group.dot}`} />
@@ -137,7 +137,7 @@ export default function LocationSelectDialog({
               </div>
 
               {/* Two locations in this area */}
-              <div className="space-y-2">
+              <div className="flex-1 flex flex-col gap-2">
                 {group.ids.map(locId => {
                   const loc = LOCATIONS.find(l => l.id === locId)!;
                   const isCurrentLoc = locId === currentLocId;
@@ -149,43 +149,28 @@ export default function LocationSelectDialog({
                     p => p.id !== playerId && false === p.isDead && p.locationId === locId
                   );
 
-                  if (isCurrentLoc) {
-                    return (
-                      <div
-                        key={locId}
-                        className="p-2.5 sm:p-3 rounded-lg bg-neutral-950/60 border border-neutral-700 opacity-50 cursor-not-allowed space-y-1.5 text-left"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-[11px] text-neutral-400 line-through">{loc.name}</span>
-                          <span className="text-[9px] text-neutral-600 font-mono bg-neutral-900 px-1.5 py-0.5 rounded">
-                            {loc.rollValues.join("/")}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-neutral-600 leading-relaxed">Vị trí hiện tại của bạn</p>
-                      </div>
-                    );
-                  }
-
                   return (
                     <button
                       key={locId}
                       onClick={() => onSelect(locId)}
-                      className="w-full p-2.5 sm:p-3 bg-neutral-950 hover:bg-[#4437AC]/20 border border-neutral-800 hover:border-[#7BA2BE]/40 rounded-lg text-left text-white transition-all space-y-1.5 group cursor-pointer active:scale-[0.98]"
+                      className="flex-1 w-full p-2.5 sm:p-3 bg-neutral-950 hover:bg-[#4437AC]/20 border border-neutral-800 hover:border-[#7BA2BE]/40 rounded-lg text-left text-white transition-all group cursor-pointer active:scale-[0.98] flex flex-col justify-between gap-2"
                     >
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-[11px] text-white group-hover:text-[#7BA2BE] transition-colors">
-                          {loc.name}
-                        </span>
-                        <span className="text-[9px] text-neutral-500 font-mono bg-neutral-900 border border-neutral-800 px-1.5 py-0.5 rounded">
-                          {loc.rollValues.join("/")}
-                        </span>
+                      <div className="w-full">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-bold text-[11px] text-white group-hover:text-[#7BA2BE] transition-colors">
+                            {loc.name} {isCurrentLoc && <span className="text-[9px] text-amber-500 font-normal bg-amber-500/10 px-1.5 py-0.5 rounded ml-1">(Đang đứng)</span>}
+                          </span>
+                          <span className="text-[9px] text-neutral-500 font-mono bg-neutral-900 border border-neutral-800 px-1.5 py-0.5 rounded">
+                            {loc.rollValues.join("/")}
+                          </span>
+                        </div>
+
+                        <p className="text-[10px] text-neutral-400 leading-relaxed font-normal">
+                          {loc.description}
+                        </p>
                       </div>
 
-                      <p className="text-[10px] text-neutral-400 leading-relaxed font-normal">
-                        {loc.description}
-                      </p>
-
-                      <div className="pt-1.5 border-t border-neutral-900/80 flex items-center justify-between text-[9px]">
+                      <div className="w-full pt-1.5 border-t border-neutral-900/80 flex items-center justify-between text-[9px]">
                         <span className="text-neutral-500 font-medium">Đối thủ ở đây:</span>
                         {otherStandingPlayers.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
