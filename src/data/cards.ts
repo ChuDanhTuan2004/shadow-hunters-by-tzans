@@ -7,7 +7,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.SHADOW,
     hp: 14,
     abilityName: "Nói dối",
-    abilityDesc: "Khi nhận Hermit Card, có thể nói dối (không cần lật ngửa thân phận).",
+    abilityDesc: "Có thể nói dối khi nhận Hermit Card.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
   {
@@ -15,7 +15,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.SHADOW,
     hp: 13,
     abilityName: "Hút máu",
-    abilityDesc: "Khi attack gây sát thương cho người khác: Hồi 2 sát thương cho bản thân.",
+    abilityDesc: "Khi gây sát thương cho người khác, bạn được hồi lại 2 HP.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
   {
@@ -23,7 +23,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.SHADOW,
     hp: 11,
     abilityName: "Phản công tức thời",
-    abilityDesc: "Khi bị người khác attack: Phản công ngay lập tức với tỷ lệ thành công 100% (gây ra lượng sát thương đúng bằng lượng sát thương vừa nhận).",
+    abilityDesc: "Phản lại toàn bộ sát thương bạn nhận vào.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
 
@@ -33,7 +33,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.SHADOW,
     hp: 11,
     abilityName: "Hào quang địa ngục",
-    abilityDesc: "Bất kỳ người chơi nào khác phe khi di chuyển bước vào Underworld Gate: Nhận ngay 3 sát thương.",
+    abilityDesc: "Những người chơi khác phe khi bước vào Underworld Gate: Nhận 3 sát thương.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
   {
@@ -41,7 +41,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.SHADOW,
     hp: 14,
     abilityName: "Đòn chém định mệnh",
-    abilityDesc: "Attack dùng chỉ xúc xắc d4 (không thể fail, damage cố định theo d4).",
+    abilityDesc: "Khi tấn công dùng chỉ xúc xắc 4 mặt. Luôn tấn công thành công.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
   {
@@ -49,7 +49,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.SHADOW,
     hp: 14,
     abilityName: "Lượt bổ sung",
-    abilityDesc: "Một lần: Được chơi thêm số lượt bằng số người đã chết hiện tại.",
+    abilityDesc: "Một lần: Được chơi thêm số lượt bằng số người đã tử trận.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
   {
@@ -57,7 +57,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.SHADOW,
     hp: 8,
     abilityName: "Độc dược",
-    abilityDesc: "Không giới hạn số lần dùng kỹ năng, thực hiện kỹ năng ở đầu lượt: Gây 1 sát thương mỗi vòng chơi cho 1 người được chỉ định. Hiệu ứng này không kết thúc khi Mganga tử trận.",
+    abilityDesc: "Đầu mỗi lượt: Gây 1 sát thương mỗi vòng chơi cho 1 người được chỉ định. Hiệu ứng này không kết thúc khi bạn tử trận.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
   {
@@ -65,7 +65,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.SHADOW,
     hp: 10,
     abilityName: "Bất tử",
-    abilityDesc: "Hồi [(Số lượng shadow còn sống trên bản đồ) + 2] máu mỗi lượt.",
+    abilityDesc: "Đầu mỗi lượt: Hồi [(Số lượng người phe Shadow còn sống) + 2] máu mỗi lượt.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
 
@@ -75,7 +75,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.HUNTER,
     hp: 14,
     abilityName: "Dịch chuyển tức thời",
-    abilityDesc: "Khi di chuyển: Được tự do chọn địa điểm đến thay vì phải lăn xúc xắc (Teleport).",
+    abilityDesc: "Đầu mỗi lượt: Tự do chọn địa điểm di chuyển.",
     winCondition: "Giết hết tất cả Shadow."
   },
   {
@@ -83,7 +83,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.HUNTER,
     hp: 13,
     abilityName: "Phóng sét định điểm",
-    abilityDesc: "Một lần: Chọn bất kỳ ai và gây 4 sát thương cố định.",
+    abilityDesc: "Một lần: Chọn một người và gây 4 sát thương.",
     winCondition: "Giết hết tất cả Shadow."
   },
   {
@@ -91,7 +91,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.HUNTER,
     hp: 9,
     abilityName: "Phát bắn chính nghĩa",
-    abilityDesc: "Đầu lượt (trước khi lắc xúc xắc): Chọn bất kỳ ai và gây sát thương bằng lắc 1 xúc xắc d4 (không giới hạn số lần sử dụng).",
+    abilityDesc: "Đầu mỗi lượt: Chọn một người và gây sát thương bằng cách tung một xúc xắc 4 mặt.",
     winCondition: "Giết hết tất cả Shadow."
   },
 
@@ -101,7 +101,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.HUNTER,
     hp: 10,
     abilityName: "Phong ấn vĩnh cửu",
-    abilityDesc: "Một lần: Chọn 1 người, vô hiệu hóa vĩnh viễn Special Ability của họ.",
+    abilityDesc: "Một lần: Chọn một người, vô hiệu hóa vĩnh viễn kỹ năng của họ.",
     winCondition: "Giết hết tất cả Shadow."
   },
   {
@@ -109,7 +109,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.HUNTER,
     hp: 12,
     abilityName: "Thao túng thời gian",
-    abilityDesc: "Một lần: Chọn 1 người chơi, sát thương nhận vào của họ lập tức bị đặt về 7.",
+    abilityDesc: "Một lần: Chọn một người, sát thương nhận vào của họ lập tức bị đặt về 7.",
     winCondition: "Giết hết tất cả Shadow."
   },
   {
@@ -125,7 +125,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.HUNTER,
     hp: 12,
     abilityName: "Thánh quang",
-    abilityDesc: "Lập tức làm lộ tất cả Shadow trên bản đồ và gây 3 sát thương cho tất cả Shadow.",
+    abilityDesc: "Một lần: Lập tức làm lộ tất cả Shadow trên bản đồ và gây 3 sát thương cho tất cả Shadow.",
     winCondition: "Giết hết tất cả Shadow."
   },
   {
@@ -133,7 +133,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.HUNTER,
     hp: 8,
     abilityName: "Trị liệu",
-    abilityDesc: "Không giới hạn số lần dùng kỹ năng, thực hiện kỹ năng ở đầu lượt: Hồi 2 máu cho 1 người được chỉ định.",
+    abilityDesc: "Đầu mỗi lượt: Hồi 2 máu cho 1 người được chỉ định.",
     winCondition: "Giết hết tất cả Shadow."
   },
 
@@ -143,7 +143,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.NEUTRAL,
     hp: 8,
     abilityName: "Ước nguyện an lành",
-    abilityDesc: "Một lần: Hồi phục đầy máu (full heal).",
+    abilityDesc: "Một lần: Hồi phục đầy máu.",
     winCondition: "Sống sót đến khi có người khác thắng."
   },
   {
@@ -175,7 +175,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.NEUTRAL,
     hp: 10,
     abilityName: "Đảo chiều số phận",
-    abilityDesc: "Một lần trong trận (khi đã tiết lộ thân phận): Đổi điều kiện thắng thành người chơi bên dưới bạn (theo thứ tự vòng chơi) thắng.",
+    abilityDesc: "Một lần: Sao chép điều kiện thắng của người chơi bên dưới bạn theo thứ tự vòng chơi.",
     winCondition: "Người chơi bên trên bạn (theo thứ tự vòng chơi) giành chiến thắng."
   },
   {
@@ -183,7 +183,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.NEUTRAL,
     hp: 12,
     abilityName: "Ngụy trang bại lộ",
-    abilityDesc: "Nếu đòn tấn công của bạn tiêu diệt người chơi có HP tối đa ≤ 12: Bạn bắt buộc phải lập tức lật ngửa thân phận.",
+    abilityDesc: "Nếu đòn tấn công của bạn tiêu diệt người chơi có HP tối đa ≤ 12. Bạn bắt buộc phải lập tức lật ngửa thân phận.",
     winCondition: "Tấn công tiêu diệt người chơi có HP tối đa ≥ 13, hoặc đang đứng ở Bàn Thờ Cổ (Erstwhile Altar) khi trận đấu kết thúc."
   },
   {
@@ -191,7 +191,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.NEUTRAL,
     hp: 11,
     abilityName: "Thiền định chiêm tinh",
-    abilityDesc: "Bắt đầu mỗi lượt của bạn: Bạn tự động hồi phục 1 HP.",
+    abilityDesc: "Bạn tự động hồi phục 1 HP vào đầu mỗi lượt.",
     winCondition: "Là người chết đầu tiên trong trận, hoặc là 1 trong 2 người cuối cùng còn sống sót."
   },
   {
@@ -199,7 +199,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.NEUTRAL,
     hp: 13,
     abilityName: "Thu thập thánh vật",
-    abilityDesc: "Không giới hạn số lần dùng kỹ năng, thực hiện kỹ năng ở đầu lượt: Cướp lấy 1 trang bị bất kỳ từ một người chơi nào còn sống.",
+    abilityDesc: "Đầu mỗi lượt: Cướp 1 trang bị từ 1 người chơi còn sống.",
     winCondition: "Sở hữu ít nhất 3 trong số các trang bị sau: Cài Áo May Mắn, Thương Longinus, Áo Choàng Thánh, Chuỗi Hạt Bạc."
   }
 ];
