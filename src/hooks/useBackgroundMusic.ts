@@ -6,8 +6,8 @@ const STORAGE_KEY_MUTED = "sh_music_muted";
 const TRACKS: Record<string, string> = {
   lobby: "/assets/music/home-screen-music.mp3",
   waiting_room: "/assets/music/home-screen-music.mp3",
-  character_select: "/assets/music/play-screen-music.mp3",
-  playing: "/assets/music/play-screen-music.mp3",
+  character_select: "/assets/music/home-screen-music.mp3",
+  playing: "/assets/music/home-screen-music.mp3",
 };
 
 export function useBackgroundMusic(view: string) {
