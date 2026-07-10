@@ -341,7 +341,7 @@ export default function App() {
                           className="w-full text-left py-2 px-3 hover:bg-rose-950/30 text-rose-455 rounded-lg text-xs font-bold transition-all border border-rose-900/30 flex items-center gap-1.5 cursor-pointer animate-fadeIn"
                         >
                           <LogOut className="w-3.5 h-3.5" />
-                          {playerId === activeGame.players[0]?.id ? "Hủy phòng chơi" : "Thoát phòng"}
+                          {playerId === (activeGame.hostId || activeGame.players[0]?.id) ? "Hủy phòng chơi" : "Thoát phòng"}
                         </button>
                       </div>
                     </>

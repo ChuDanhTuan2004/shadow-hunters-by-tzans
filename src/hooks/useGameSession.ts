@@ -123,7 +123,7 @@ export function useGameSession() {
 
         // Nếu phòng bị chủ phòng hủy / kết thúc
         if ("cancelled" === updatedState.phase) {
-          if (playerId !== updatedState.players[0]?.id) {
+          if (playerId !== (updatedState.hostId || updatedState.players[0]?.id)) {
             const doReset = () => {
               setView("lobby");
               setLobbyInitialView("start");

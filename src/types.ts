@@ -89,6 +89,7 @@ export interface DiceAnimState {
 
 export interface GameState {
   roomId: string;
+  hostId?: string; // ID của người tạo phòng (chủ phòng)
   players: Player[];
   turnIndex: number;
   phase: "lobby" | "roll" | "action" | "attack" | "game_over" | "cancelled" | "character_select";

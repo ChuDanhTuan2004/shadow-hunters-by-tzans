@@ -26,7 +26,7 @@ export default function WaitingRoom({
   onLeave,
   onStartGame
 }: WaitingRoomProps) {
-  const isHost = activeGame.players[0]?.id === playerId;
+  const isHost = (activeGame.hostId || activeGame.players[0]?.id) === playerId;
 
   return (
     <div className="relative w-full z-10 flex flex-col items-center">
@@ -86,7 +86,7 @@ export default function WaitingRoom({
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }}></span>
                   <span className="text-xs text-white font-bold">
-                    {p.name} {p.isBot ? "(Bot)" : p.id === playerId ? (activeGame.players[0]?.id === playerId ? "(Bạn - Host)" : "(Bạn)") : (activeGame.players[0]?.id === p.id ? "(Host)" : "")}
+                    {p.name} {p.isBot ? "(Bot)" : p.id === playerId ? ((activeGame.hostId || activeGame.players[0]?.id) === playerId ? "(Bạn - Host)" : "(Bạn)") : ((activeGame.hostId || activeGame.players[0]?.id) === p.id ? "(Host)" : "")}
                   </span>
                 </div>
 

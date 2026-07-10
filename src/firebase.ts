@@ -56,6 +56,7 @@ export async function createGameRoom(
   // Khởi tạo trạng thái rỗng
   const initialRoomState = {
     roomId,
+    hostId: hostPlayerId,
     players: [
       {
         id: hostPlayerId,

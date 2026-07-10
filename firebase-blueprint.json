@@ -24,6 +24,7 @@
       "type": "object",
       "properties": {
         "roomId": { "type": "string" },
+        "hostId": { "type": "string" },
         "players": { "type": "array" },
         "turnIndex": { "type": "integer" },
         "phase": { "type": "string" },

@@ -78,7 +78,7 @@ export function useGameplay({
     if (gameMode === "multiplayer" && roomId && activeGame && "playing" === view) {
       const activePlayer = activeGame.players[activeGame.turnIndex];
       if (activePlayer && activePlayer.isBot && activeGame.phase !== "game_over") {
-        const isHost = activeGame.players[0].id === playerId;
+        const isHost = (activeGame.hostId || activeGame.players[0]?.id) === playerId;
         if (isHost) {
           const timer = setTimeout(() => {
             const updated = executeBotTurn(activeGame, activePlayer.id);
@@ -221,7 +221,7 @@ export function useGameplay({
     if (!roomId) return;
 
     // Xác định nhân vật thực tế từ lựa chọn
-    const updatedPlayers = state.players.map(p => {
+    let updatedPlayers = state.players.map(p => {
       const charName = p.characterChoice || p.characterOptions![0];
       const character = CHARACTERS.find(c => c.name === charName)!;
       return {
@@ -238,7 +238,13 @@ export function useGameplay({
       };
     });
 
-    const newLog = createLog("🎯 Trận đấu trực tuyến chính thức khai hỏa! Thân phận đã phân phát bí mật, trò chơi bắt đầu.", "system");
+    // Xáo trộn thứ tự người chơi để randomize turn order
+    updatedPlayers = [...updatedPlayers].sort(() => Math.random() - 0.5);
+
+    const logs = [
+      createLog("🔀 Thứ tự lượt chơi đã được xáo trộn ngẫu nhiên!", "system"),
+      createLog("🎯 Trận đấu trực tuyến chính thức khai hỏa! Thân phận đã phân phát bí mật, trò chơi bắt đầu.", "system")
+    ];
 
     const shuffleIds = (arr: GameCard[]): string[] => {
       return arr.map(c => c.id).sort(() => Math.random() - 0.5);
@@ -247,7 +253,7 @@ export function useGameplay({
     const nextState = {
       ...state,
       players: updatedPlayers,
-      logs: [newLog],
+      logs,
       phase: "roll" as const,
       turnIndex: 0,
       hermitDeck: shuffleIds(DECK_HERMIT),
@@ -291,7 +297,7 @@ export function useGameplay({
   // Bot tự động chọn nhân vật
   useEffect(() => {
     if (gameMode === "multiplayer" && roomId && activeGame && "character_select" === activeGame.phase) {
-      const isHost = activeGame.players[0].id === playerId;
+      const isHost = (activeGame.hostId || activeGame.players[0]?.id) === playerId;
       const botsUnchosen = activeGame.players.filter(p => p.isBot && (p.characterChoice === null || p.characterChoice === undefined));
       if (isHost && botsUnchosen.length > 0) {
         const timer = setTimeout(async () => {
@@ -945,7 +951,7 @@ export function useGameplay({
       setRoomId(null);
       setActiveGame(null);
     } else if ("multiplayer" === gameMode && roomId) {
-      const isHost = playerId === activeGame.players[0].id;
+      const isHost = playerId === (activeGame.hostId || activeGame.players[0]?.id);
       if (isHost) {
         const resetPlayers = activeGame.players.map(p => ({
           id: p.id,
@@ -1013,7 +1019,7 @@ export function useGameplay({
   const handleLeaveGame = async () => {
     const isSolo = "solo" === gameMode;
     if ("multiplayer" === gameMode && null !== roomId && null !== activeGame) {
-      const isHost = playerId === activeGame.players[0]?.id;
+      const isHost = playerId === (activeGame.hostId || activeGame.players[0]?.id);
       if (true === isHost) {
         await handleCancelRoomByHost();
         return;
