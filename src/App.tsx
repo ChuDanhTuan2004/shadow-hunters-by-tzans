@@ -1,6 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useGameSession } from "./hooks/useGameSession";
 import { useGameplay } from "./hooks/useGameplay";
+import { useBackgroundMusic } from "./hooks/useBackgroundMusic";
+import { useButtonClickSound } from "./hooks/useButtonClickSound";
 import { getCardById, updateCardDecksFromFirebase, DECK_HERMIT, DECK_LIGHT, DECK_SHADOW } from "./data/cards";
 import { syncLocalCardsToFirebase, fetchCardsFromFirebase } from "./firebase";
 import { LOCATIONS } from "./data/locations";
@@ -16,6 +18,7 @@ import PlayerListSidebar from "./components/PlayerListSidebar";
 import ActionControls from "./components/ActionControls";
 
 // Dialogs
+import NotificationDialog from "./components/dialogs/NotificationDialog";
 import HistoryDialog from "./components/dialogs/HistoryDialog";
 import PlayerDetailDialog from "./components/dialogs/PlayerDetailDialog";
 import GameOverDialog from "./components/dialogs/GameOverDialog";
@@ -28,9 +31,10 @@ import CharacterListModal from "./components/dialogs/CharacterListModal";
 import EquipmentListModal from "./components/dialogs/EquipmentListModal";
 import CardListModal from "./components/dialogs/CardListModal";
 import CardHistoryModal from "./components/dialogs/CardHistoryModal";
+import AudioSettingsDialog from "./components/dialogs/AudioSettingsDialog";
 
 // Icons
-import { Shield, BookOpen, Settings, LogOut, RefreshCw, History, Sparkles } from "lucide-react";
+import { Shield, BookOpen, Settings, LogOut, RefreshCw, History, Sparkles, Volume2 } from "lucide-react";
 
 export default function App() {
   // Sync card database from Firestore on app mount
@@ -70,7 +74,10 @@ export default function App() {
     setActiveGame,
     handleEnterRoom,
     handleAddBotInLobby,
-    handleRemovePlayerInLobby
+    handleRemovePlayerInLobby,
+    notification,
+    clearNotification,
+    markLeavingVoluntarily
   } = useGameSession();
 
   // useGameplay hook handles core gameplay interactions
@@ -124,8 +131,13 @@ export default function App() {
     activeGame,
     setActiveGame,
     setView,
-    setLobbyInitialView
+    setLobbyInitialView,
+    markLeavingVoluntarily
   });
+
+  const { isMuted: isMusicMuted, toggleMute: toggleMusicMute, volume: musicVolume, setVolume: setMusicVolume } = useBackgroundMusic(view);
+  const { isSfxMuted, toggleMute, sfxVolume, setVolume } = useButtonClickSound();
+  const [showAudioSettings, setShowAudioSettings] = useState(false);
 
   const activeDrawnCard = activeGame?.drawnCardId ? getCardById(activeGame.drawnCardId) || null : null;
   const showGateSelection = activeGame?.showGateSelection || false;
@@ -307,6 +319,18 @@ export default function App() {
                           Danh sách thẻ bài
                         </button>
 
+                        {/* Âm thanh */}
+                        <button
+                          onClick={() => {
+                            setShowSettingsMenu(false);
+                            setShowAudioSettings(true);
+                          }}
+                          className="w-full text-left py-2 px-3 hover:bg-neutral-800 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Volume2 className="w-3.5 h-3.5 text-[#7BA2BE]" />
+                          Âm thanh
+                        </button>
+
                         {/* Separator + Thoát phòng */}
                         <div className="border-t border-neutral-800 my-1" />
                         <button
@@ -411,6 +435,13 @@ export default function App() {
       {/* Dialogs & Overlays */}
       <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
 
+      <NotificationDialog
+        isOpen={!!notification}
+        title={notification?.title || ""}
+        message={notification?.message || ""}
+        onConfirm={clearNotification}
+      />
+
       <HistoryDialog
         isOpen={showHistoryDialog}
         onClose={() => setShowHistoryDialog(false)}
@@ -489,6 +520,15 @@ export default function App() {
         drawnCardIds={activeGame?.players.find(p => p.id === playerId)?.drawnCards || []}
       />
 
+      <AudioSettingsDialog
+        isOpen={showAudioSettings}
+        onClose={() => setShowAudioSettings(false)}
+        isMuted={isMusicMuted}
+        volume={musicVolume}
+        onToggleMute={toggleMusicMute}
+        onVolumeChange={setMusicVolume}
+      />
+
       {activeGame && (
         <AbilityTargetDialog
           isOpen={showAbilityTargetDialog}
@@ -501,6 +541,9 @@ export default function App() {
           }}
         />
       )}
+
+
+
     </div>
   );
 }

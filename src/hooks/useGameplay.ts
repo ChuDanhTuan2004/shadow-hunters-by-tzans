@@ -30,6 +30,7 @@ interface UseGameplayParams {
   setActiveGame: React.Dispatch<React.SetStateAction<GameState | null>>;
   setView: React.Dispatch<React.SetStateAction<"lobby" | "waiting_room" | "character_select" | "playing">>;
   setLobbyInitialView: React.Dispatch<React.SetStateAction<"home" | "start">>;
+  markLeavingVoluntarily: () => void;
 }
 
 export function useGameplay({
@@ -43,7 +44,8 @@ export function useGameplay({
   activeGame,
   setActiveGame,
   setView,
-  setLobbyInitialView
+  setLobbyInitialView,
+  markLeavingVoluntarily
 }: UseGameplayParams) {
   // Dialog/Modal Visibility States
   const [isRulesOpen, setIsRulesOpen] = useState(false);
@@ -1019,6 +1021,7 @@ export function useGameplay({
 
       const updatedPlayers = activeGame.players.filter(p => p.id !== playerId);
       if (0 < updatedPlayers.length) {
+        markLeavingVoluntarily();
         const nextState = {
           ...activeGame,
           players: updatedPlayers,

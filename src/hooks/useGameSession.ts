@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Alignment, GameState } from "../types";
 import { listenToRoom, updateRoomState } from "../firebase";
 
@@ -61,6 +61,20 @@ export function useGameSession() {
     return null;
   });
 
+  const [notification, setNotification] = useState<{ title: string; message: string } | null>(null);
+  const notificationCallbackRef = useRef<(() => void) | null>(null);
+  const leavingVoluntarilyRef = useRef(false);
+
+  const clearNotification = () => {
+    notificationCallbackRef.current?.();
+    notificationCallbackRef.current = null;
+    setNotification(null);
+  };
+
+  const markLeavingVoluntarily = () => {
+    leavingVoluntarilyRef.current = true;
+  };
+
   // Đồng bộ hóa trạng thái phiên chơi vào sessionStorage
   useEffect(() => {
     sessionStorage.setItem("sh_view", view);
@@ -95,34 +109,60 @@ export function useGameSession() {
     if ("multiplayer" === gameMode && null !== roomId && ("playing" === view || "waiting_room" === view || "character_select" === view)) {
       const unsubscribe = listenToRoom(roomId, (updatedState: GameState) => {
         if (null === updatedState || undefined === updatedState) {
-          alert("Phòng không tồn tại hoặc đã bị hủy.");
-          setView("lobby");
-          setLobbyInitialView("start");
-          setGameMode(null);
-          setRoomId(null);
-          setActiveGame(null);
+          const doReset = () => {
+            setView("lobby");
+            setLobbyInitialView("start");
+            setGameMode(null);
+            setRoomId(null);
+            setActiveGame(null);
+          };
+          setNotification({ title: "Phòng không tồn tại", message: "Phòng không tồn tại hoặc đã bị hủy." });
+          notificationCallbackRef.current = doReset;
           return;
         }
 
         // Nếu phòng bị chủ phòng hủy / kết thúc
         if ("cancelled" === updatedState.phase) {
-          alert("⚠️ Chủ phòng đã hủy phòng / kết thúc trận đấu.");
-          setView("lobby");
-          setLobbyInitialView("start");
-          setGameMode(null);
-          setRoomId(null);
-          setActiveGame(null);
+          if (playerId !== updatedState.players[0]?.id) {
+            const doReset = () => {
+              setView("lobby");
+              setLobbyInitialView("start");
+              setGameMode(null);
+              setRoomId(null);
+              setActiveGame(null);
+            };
+            setNotification({ title: "Phòng đã bị hủy", message: "⚠️ Chủ phòng đã hủy phòng / kết thúc trận đấu." });
+            notificationCallbackRef.current = doReset;
+          } else {
+            setView("lobby");
+            setLobbyInitialView("start");
+            setGameMode(null);
+            setRoomId(null);
+            setActiveGame(null);
+          }
           return;
         }
 
         // Nếu bản thân bị đuổi khỏi phòng
         if (false === updatedState.players.some(p => p.id === playerId)) {
-          alert("Bạn đã bị chủ phòng đuổi ra khỏi phòng.");
-          setView("lobby");
-          setLobbyInitialView("start");
-          setGameMode(null);
-          setRoomId(null);
-          setActiveGame(null);
+          if (!leavingVoluntarilyRef.current) {
+            const doReset = () => {
+              setView("lobby");
+              setLobbyInitialView("start");
+              setGameMode(null);
+              setRoomId(null);
+              setActiveGame(null);
+            };
+            setNotification({ title: "Bị đuổi khỏi phòng", message: "Bạn đã bị chủ phòng đuổi ra khỏi phòng." });
+            notificationCallbackRef.current = doReset;
+          } else {
+            leavingVoluntarilyRef.current = false;
+            setView("lobby");
+            setLobbyInitialView("start");
+            setGameMode(null);
+            setRoomId(null);
+            setActiveGame(null);
+          }
           return;
         }
 
@@ -134,7 +174,7 @@ export function useGameSession() {
         }
 
         // Chuyển sang màn hình chơi khi đã chọn nhân vật xong
-        if ("character_select" === view && "character_select" !== updatedState.phase && "lobby" !== updatedState.phase && "cancelled" !== updatedState.phase) {
+        if ("character_select" === view && "character_select" !== updatedState.phase && "lobby" !== updatedState.phase) {
           setView("playing");
         }
       });
@@ -219,6 +259,9 @@ export function useGameSession() {
     setActiveGame,
     handleEnterRoom,
     handleAddBotInLobby,
-    handleRemovePlayerInLobby
+    handleRemovePlayerInLobby,
+    notification,
+    clearNotification,
+    markLeavingVoluntarily
   };
 }
