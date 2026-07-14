@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Alignment, CardType, GameState, Player } from "../types";
+import { Alignment, CardType, GameState, Player, Character } from "../types";
 import { LOCATIONS, areLocationsInSameArea } from "../data/locations";
 import { CHARACTERS, DECK_HERMIT, DECK_LIGHT, DECK_SHADOW, getCardById, GameCard } from "../data/cards";
 import { updateRoomState } from "../firebase";
@@ -143,36 +143,36 @@ export function useGameplay({
     else if (11 === count) { shadowCount = 4; hunterCount = 4; neutralCount = 3; }
     else if (12 <= count) { shadowCount = 4; hunterCount = 4; neutralCount = 4; }
 
-    // Tạo pool theo alignment, mỗi nhân vật xuất hiện 2 lần (cho 2 lựa chọn)
-    const pool: { char: Character; alignment: Alignment }[] = [
-      ...shuffle(shadows).slice(0, shadowCount * 2).map(c => ({ char: c, alignment: Alignment.SHADOW })),
-      ...shuffle(hunters).slice(0, hunterCount * 2).map(c => ({ char: c, alignment: Alignment.HUNTER })),
-      ...shuffle(neutrals).slice(0, neutralCount * 2).map(c => ({ char: c, alignment: Alignment.NEUTRAL })),
-    ];
+    // 1. Tạo danh sách các phe theo đúng cấu trúc cân bằng
+    const alignmentList: Alignment[] = [];
+    for (let i = 0; i < shadowCount; i++) alignmentList.push(Alignment.SHADOW);
+    for (let i = 0; i < hunterCount; i++) alignmentList.push(Alignment.HUNTER);
+    for (let i = 0; i < neutralCount; i++) alignmentList.push(Alignment.NEUTRAL);
 
-    // Xáo pool và phân phát cho mỗi player, đảm bảo không trùng character name
-    const shuffledPool = shuffle(pool);
-    const usedNames = new Set<string>();
+    // Xáo trộn danh sách các phe để gán ngẫu nhiên cho người chơi
+    const shuffledAlignments = shuffle(alignmentList);
+
+    // 2. Tạo pool nhân vật riêng cho từng phe và xáo trộn
+    const shadowPool = shuffle(shadows.map(c => c.name));
+    const hunterPool = shuffle(hunters.map(c => c.name));
+    const neutralPool = shuffle(neutrals.map(c => c.name));
+
+    // 3. Phân phát tùy chọn cho người chơi
     const playersWithOptions: Player[] = [];
 
     for (let i = 0; i < state.players.length; i++) {
       const p = state.players[i];
-      const options: string[] = [];
-      for (const item of shuffledPool) {
-        if (options.length >= 2) break;
-        if (!usedNames.has(item.char.name)) {
-          options.push(item.char.name);
-          usedNames.add(item.char.name);
-        }
+      const assignedAlignment = shuffledAlignments[i] || Alignment.NEUTRAL;
+
+      let options: string[] = [];
+      if (assignedAlignment === Alignment.SHADOW) {
+        options = [shadowPool.pop()!, shadowPool.pop()!];
+      } else if (assignedAlignment === Alignment.HUNTER) {
+        options = [hunterPool.pop()!, hunterPool.pop()!];
+      } else {
+        options = [neutralPool.pop()!, neutralPool.pop()!];
       }
-      // Nếu không đủ options (hiếm), fill bằng random chưa dùng
-      while (options.length < 2) {
-        const fallback = CHARACTERS.find(c => !usedNames.has(c.name));
-        if (fallback) {
-          options.push(fallback.name);
-          usedNames.add(fallback.name);
-        } else break;
-      }
+
       playersWithOptions.push({
         ...p,
         character: {

@@ -229,6 +229,7 @@ export default function App() {
             activeGame={activeGame}
             playerId={playerId}
             onConfirmCharacter={handleConfirmCharacter}
+            onLeave={handleLeaveGame}
           />
         )}
 

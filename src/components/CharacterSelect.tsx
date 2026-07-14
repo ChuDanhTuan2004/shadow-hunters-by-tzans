@@ -1,5 +1,5 @@
 import React from "react";
-import { Heart, Sparkles, Shield, Check, Clock } from "lucide-react";
+import { Heart, Sparkles, Shield, Check, Clock, ArrowLeft } from "lucide-react";
 import { GameState, Alignment } from "../types";
 import { CHARACTERS } from "../data/cards";
 
@@ -10,6 +10,7 @@ interface CharacterSelectProps {
   activeGame: GameState;
   playerId: string;
   onConfirmCharacter: (characterName: string) => void;
+  onLeave: () => void;
 }
 
 const alignmentStyles: Record<string, { bg: string; border: string; text: string; badge: string }> = {
@@ -36,9 +37,11 @@ const alignmentStyles: Record<string, { bg: string; border: string; text: string
 export default function CharacterSelect({
   activeGame,
   playerId,
-  onConfirmCharacter
+  onConfirmCharacter,
+  onLeave
 }: CharacterSelectProps) {
   const currentPlayer = activeGame.players.find(p => p.id === playerId);
+  const isHost = (activeGame.hostId || activeGame.players[0]?.id) === playerId;
   const options = currentPlayer?.characterOptions || [];
   const hasChosen = currentPlayer?.characterChoice !== null && currentPlayer?.characterChoice !== undefined;
 
@@ -177,6 +180,17 @@ export default function CharacterSelect({
             </p>
           </div>
         )}
+
+        {/* Nút Hủy phòng / Thoát phòng */}
+        <div className="flex justify-center pt-4 border-t border-white/5">
+          <button
+            onClick={onLeave}
+            className="px-6 py-3 bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-xs font-bold text-neutral-300 rounded-2xl transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-md"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {isHost ? "Hủy Phòng" : "Thoát Phòng"}
+          </button>
+        </div>
       </div>
     </div>
   );
