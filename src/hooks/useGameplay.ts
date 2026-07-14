@@ -197,102 +197,20 @@ export function useGameplay({
     return playersWithOptions;
   };
 
-  // 2. Khai cuộc Multiplayer (Phát nhân vật ngẫu nhiên & Cân bằng phe)
+  // 2. Khai cuộc Multiplayer (Host phát 2 options cho mỗi player)
   const handleStartMultiplayerGame = async () => {
     if (null === activeGame || null === roomId) return;
     if (3 > activeGame.players.length) return;
 
-    const count = activeGame.players.length;
-    const shadows = CHARACTERS.filter(c => c.alignment === Alignment.SHADOW);
-    const hunters = CHARACTERS.filter(c => c.alignment === Alignment.HUNTER);
-    const neutrals = CHARACTERS.filter(c => c.alignment === Alignment.NEUTRAL);
+    const playersWithOptions = generateCharacterOptions(activeGame);
 
-    const shuffle = <T>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
-
-    let shadowCount = 1;
-    let hunterCount = 1;
-    let neutralCount = 1;
-
-    if (4 === count) { shadowCount = 2; hunterCount = 2; neutralCount = 0; }
-    else if (5 === count) { shadowCount = 2; hunterCount = 2; neutralCount = 1; }
-    else if (6 === count) { shadowCount = 2; hunterCount = 2; neutralCount = 2; }
-    else if (7 === count) { shadowCount = 3; hunterCount = 3; neutralCount = 1; }
-    else if (8 === count) { shadowCount = 3; hunterCount = 3; neutralCount = 2; }
-    else if (9 === count) { shadowCount = 3; hunterCount = 3; neutralCount = 3; }
-    else if (10 === count) { shadowCount = 3; hunterCount = 3; neutralCount = 4; }
-    else if (11 === count) { shadowCount = 4; hunterCount = 4; neutralCount = 3; }
-    else if (12 <= count) { shadowCount = 4; hunterCount = 4; neutralCount = 4; }
-
-    // 1. Tạo danh sách các phe theo đúng cấu trúc cân bằng
-    const alignmentList: Alignment[] = [];
-    for (let i = 0; i < shadowCount; i++) alignmentList.push(Alignment.SHADOW);
-    for (let i = 0; i < hunterCount; i++) alignmentList.push(Alignment.HUNTER);
-    for (let i = 0; i < neutralCount; i++) alignmentList.push(Alignment.NEUTRAL);
-
-    // Xáo trộn danh sách các phe để gán ngẫu nhiên cho người chơi
-    const shuffledAlignments = shuffle(alignmentList);
-
-    // 2. Tạo pool nhân vật riêng cho từng phe và xáo trộn
-    const shadowPool = shuffle(shadows);
-    const hunterPool = shuffle(hunters);
-    const neutralPool = shuffle(neutrals);
-
-    // 3. Gán ngẫu nhiên 1 nhân vật từ phe tương ứng cho mỗi người chơi
-    let updatedPlayers = activeGame.players.map((p, idx) => {
-      const assignedAlignment = shuffledAlignments[idx] || Alignment.NEUTRAL;
-      let character: Character;
-
-      if (assignedAlignment === Alignment.SHADOW) {
-        character = shadowPool.pop()!;
-      } else if (assignedAlignment === Alignment.HUNTER) {
-        character = hunterPool.pop()!;
-      } else {
-        character = neutralPool.pop()!;
-      }
-
-      return {
-        ...p,
-        character: { ...character },
-        currentHp: character.hp,
-        locationId: null,
-        alignmentRevealed: false,
-        equipments: [],
-        drawnCards: [],
-        isDead: false,
-        characterOptions: undefined,
-        characterChoice: undefined
-      };
-    });
-
-    // Xáo trộn thứ tự người chơi để randomize turn order
-    updatedPlayers = shuffle(updatedPlayers);
-
-    const logs = [
-      createLog("🔀 Thứ tự lượt chơi đã được xáo trộn ngẫu nhiên!", "system"),
-      createLog("🎯 Trận đấu trực tuyến chính thức khai hỏa! Thân phận đã phân phát bí mật, trò chơi bắt đầu.", "system")
-    ];
-
-    const shuffleIds = (arr: GameCard[]): string[] => {
-      return arr.map(c => c.id).sort(() => Math.random() - 0.5);
-    };
+    const newLog = createLog("🎭 Vòng chọn nhân vật bắt đầu! Mỗi người chơi hãy chọn 1 trong 2 nhân vật được rút.", "system");
 
     const nextState = {
       ...activeGame,
-      players: updatedPlayers,
-      logs,
-      phase: "roll" as const,
-      turnIndex: 0,
-      hermitDeck: shuffleIds(DECK_HERMIT),
-      hermitDiscard: [],
-      lightDeck: shuffleIds(DECK_LIGHT),
-      lightDiscard: [],
-      shadowDeck: shuffleIds(DECK_SHADOW),
-      shadowDiscard: [],
-      drawnCardId: null,
-      showGateSelection: false,
-      selectedGateDeck: null,
-      winnerAlignment: null,
-      winnerPlayerIds: null
+      players: playersWithOptions,
+      logs: [newLog],
+      phase: "character_select" as const,
     };
 
     await updateRoomState(roomId, nextState);
