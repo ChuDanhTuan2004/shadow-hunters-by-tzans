@@ -962,6 +962,7 @@ export function useGameCard(
   let updatedPlayers = gameState.players.map(p => ({ ...p, character: { ...p.character } }));
   const source = updatedPlayers.find(p => p.id === sourcePlayerId)!;
   const logs: GameLog[] = [];
+  let hermitTargetIdentityShown = gameState.hermitTargetIdentityShown;
 
   const card = getCardById(cardId);
   if (!card) return gameState;
@@ -981,6 +982,122 @@ export function useGameCard(
   } else {
     // Thẻ hành động tiêu dùng một lần
     switch (cardId) {
+      case "l_cleanse": {
+        const wasPoisoned = !!source.mgangaPoisoned;
+        source.mgangaPoisoned = false;
+        logs.push(createLog(wasPoisoned
+          ? `✨ [Ánh Sáng Thanh Tẩy] ${source.name} đã được giải trừ hoàn toàn Độc Dược Mganga!`
+          : `✨ [Ánh Sáng Thanh Tẩy] ${source.name} không bị trúng độc nên không có trạng thái nào cần giải trừ.`, "action"));
+        break;
+      }
+
+      case "l_team_blessing": {
+        const target = updatedPlayers.find(p => p.id === targetPlayerId && !p.isDead);
+        if (target) {
+          source.currentHp = Math.min(source.character.hp, source.currentHp + 2);
+          target.currentHp = Math.min(target.character.hp, target.currentHp + 2);
+          logs.push(createLog(`🤝 [Phước Lành Đồng Đội] ${source.name} và ${target.name} cùng hồi phục 2 HP!`, "action"));
+        }
+        break;
+      }
+
+      case "l_holy_eye": {
+        const target = updatedPlayers.find(p => p.id === targetPlayerId && !p.isDead);
+        if (target) {
+          hermitTargetIdentityShown = {
+            viewerId: source.id,
+            targetId: target.id,
+            characterName: target.character.name,
+            alignment: target.character.alignment
+          };
+          logs.push(createLog(`👁️ [Thánh Nhãn] ${source.name} đã bí mật nhìn thấu thân phận của ${target.name}.`, "action"));
+        }
+        break;
+      }
+
+      case "l_salvation_bell": {
+        const rescued: string[] = [];
+        updatedPlayers.forEach(p => {
+          if (!p.isDead && p.currentHp <= 3) {
+            p.currentHp = Math.min(p.character.hp, p.currentHp + 2);
+            rescued.push(p.name);
+          }
+        });
+        logs.push(createLog(rescued.length > 0
+          ? `🔔 [Chuông Cứu Rỗi] hồi 2 HP cho: ${rescued.join(", ")}.`
+          : `🔔 [Chuông Cứu Rỗi] ngân vang nhưng không có ai đang ở mức 3 HP trở xuống.`, "action"));
+        break;
+      }
+
+      case "s_lifesteal": {
+        const target = updatedPlayers.find(p => p.id === targetPlayerId && !p.isDead);
+        if (target) {
+          const damage = Math.min(2, target.currentHp);
+          target.currentHp = Math.max(0, target.currentHp - 2);
+          source.currentHp = Math.min(source.character.hp, source.currentHp + damage);
+          logs.push(createLog(`🩸 [Trộm Sinh Lực] ${source.name} hút ${damage} HP từ ${target.name}!`, "attack"));
+          if (target.currentHp <= 0) {
+            target.isDead = true;
+            target.alignmentRevealed = true;
+            logs.push(createLog(`☠️ ${target.name} tử trận vì bị hút cạn sinh lực! Thân phận: [${target.character.name}] - Phe [${target.character.alignment}].`, "reveal"));
+          }
+        }
+        break;
+      }
+
+      case "s_darkness": {
+        const alive = updatedPlayers.filter(p => !p.isDead);
+        if (alive.length > 0) {
+          const highestHp = Math.max(...alive.map(p => p.currentHp));
+          const candidates = alive.filter(p => p.currentHp === highestHp);
+          const victim = candidates[Math.floor(Math.random() * candidates.length)];
+          victim.currentHp = Math.max(0, victim.currentHp - 3);
+          logs.push(createLog(`🌑 [Bóng Tối Nuốt Chửng] ${victim.name}, người có HP cao nhất, nhận 3 sát thương!`, "attack"));
+          if (victim.currentHp <= 0) {
+            victim.isDead = true;
+            victim.alignmentRevealed = true;
+            logs.push(createLog(`☠️ ${victim.name} đã bị bóng tối nuốt chửng! Thân phận: [${victim.character.name}] - Phe [${victim.character.alignment}].`, "reveal"));
+          }
+        }
+        break;
+      }
+
+      case "s_chaos": {
+        const alive = updatedPlayers.filter(p => !p.isDead);
+        const locations = alive.map(p => p.locationId);
+        for (let i = locations.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [locations[i], locations[j]] = [locations[j], locations[i]];
+        }
+        alive.forEach((p, index) => { p.locationId = locations[index]; });
+        logs.push(createLog(`🌀 [Hỗn Loạn] vị trí của tất cả người còn sống đã bị xáo trộn ngẫu nhiên!`, "action"));
+        break;
+      }
+
+      case "s_pandora": {
+        const roll = Math.floor(Math.random() * 6) + 1;
+        if (roll <= 2) {
+          source.currentHp = Math.max(0, source.currentHp - 3);
+          logs.push(createLog(`📦 [Hộp Pandora] D6 = ${roll}: ${source.name} nhận 3 sát thương!`, "attack"));
+        } else if (roll <= 4) {
+          updatedPlayers.forEach(p => {
+            if (!p.isDead) p.currentHp = Math.max(0, p.currentHp - 1);
+          });
+          logs.push(createLog(`📦 [Hộp Pandora] D6 = ${roll}: tất cả người còn sống nhận 1 sát thương!`, "attack"));
+        } else {
+          source.currentHp = source.character.hp;
+          logs.push(createLog(`📦 [Hộp Pandora] D6 = ${roll}: ${source.name} được hồi đầy máu!`, "action"));
+        }
+        updatedPlayers.forEach(p => {
+          if (!p.isDead && p.currentHp <= 0) {
+            p.isDead = true;
+            p.alignmentRevealed = true;
+            logs.push(createLog(`☠️ ${p.name} tử trận vì Hộp Pandora! Thân phận: [${p.character.name}] - Phe [${p.character.alignment}].`, "reveal"));
+          }
+        });
+        break;
+      }
+
       case "l_advent": // Advent: Nếu là Hunter, có thể lật ngửa thân phận và hồi đầy HP
         if (Alignment.HUNTER === source.character.alignment) {
           source.alignmentRevealed = true;
@@ -1288,6 +1405,7 @@ export function useGameCard(
     phase: newPhase,
     winnerAlignment,
     winnerPlayerIds,
+    hermitTargetIdentityShown,
     selectedCard: null,
     hermitDiscard: CardType.HERMIT === card.type ? nextDiscard : gameState.hermitDiscard,
     lightDiscard: CardType.LIGHT === card.type ? nextDiscard : gameState.lightDiscard,
@@ -1833,7 +1951,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
                   if (otherPlayers.length > 0) {
                     targetId = otherPlayers[Math.floor(Math.random() * otherPlayers.length)].id;
                   }
-                } else if ("l_disenchant" === card.id || "l_firstaid" === card.id) {
+                } else if ("l_disenchant" === card.id || "l_firstaid" === card.id || "l_team_blessing" === card.id || "l_holy_eye" === card.id || "s_lifesteal" === card.id) {
                   const others = updatedState.players.filter(p => p.id !== botId && !p.isDead);
                   if (others.length > 0) {
                     targetId = others[Math.floor(Math.random() * others.length)].id;
@@ -1883,7 +2001,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
                 if (otherPlayers.length > 0) {
                   targetId = otherPlayers[Math.floor(Math.random() * otherPlayers.length)].id;
                 }
-              } else if ("l_disenchant" === card.id || "l_firstaid" === card.id) {
+              } else if ("l_disenchant" === card.id || "l_firstaid" === card.id || "l_team_blessing" === card.id || "l_holy_eye" === card.id) {
                 const others = updatedState.players.filter(p => p.id !== botId && !p.isDead);
                 if (others.length > 0) {
                   targetId = others[Math.floor(Math.random() * others.length)].id;
@@ -1905,7 +2023,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
               updatedState = useGameCard(updatedState, card.id, botId);
             } else {
               let targetId: string | null = null;
-              if ("s_spider" === card.id || "s_doll" === card.id || card.id.startsWith("s_bat")) {
+              if ("s_spider" === card.id || "s_doll" === card.id || "s_lifesteal" === card.id || card.id.startsWith("s_bat")) {
                 const enemies = updatedState.players.filter(p => p.id !== botId && !p.isDead);
                 targetId = enemies.length > 0 ? enemies[Math.floor(Math.random() * enemies.length)].id : null;
               } else if ("s_banana" === card.id) {

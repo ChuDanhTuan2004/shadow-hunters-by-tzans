@@ -316,6 +316,38 @@ export let DECK_HERMIT: GameCard[] = [
 export let DECK_LIGHT: GameCard[] = [
   // 1. Dùng 1 lần
   {
+    id: "l_cleanse",
+    name: "Purifying Light (Ánh Sáng Thanh Tẩy)",
+    type: CardType.LIGHT,
+    description: "Xóa hiệu ứng Độc Dược Mganga đang tác động lên bản thân.",
+    isEquipment: false,
+    effectText: "Thanh tẩy trạng thái trúng độc của bản thân."
+  },
+  {
+    id: "l_team_blessing",
+    name: "Shared Blessing (Phước Lành Đồng Đội)",
+    type: CardType.LIGHT,
+    description: "Chọn 1 người còn sống khác. Bạn và người đó cùng hồi 2 HP.",
+    isEquipment: false,
+    effectText: "Bản thân và một mục tiêu cùng hồi 2 HP."
+  },
+  {
+    id: "l_holy_eye",
+    name: "Holy Eye (Thánh Nhãn)",
+    type: CardType.LIGHT,
+    description: "Chọn 1 người còn sống và bí mật xem nhân vật cùng phe của họ.",
+    isEquipment: false,
+    effectText: "Chỉ người dùng được xem thân phận thật của mục tiêu."
+  },
+  {
+    id: "l_salvation_bell",
+    name: "Bell of Salvation (Chuông Cứu Rỗi)",
+    type: CardType.LIGHT,
+    description: "Tất cả người còn sống có từ 3 HP trở xuống hồi 2 HP.",
+    isEquipment: false,
+    effectText: "Hồi 2 HP cho mọi người còn sống đang nguy cấp."
+  },
+  {
     id: "l_advent",
     name: "Advent (Lộ Diện Thần Thánh)",
     type: CardType.LIGHT,
@@ -457,6 +489,38 @@ export let DECK_LIGHT: GameCard[] = [
 
 export let DECK_SHADOW: GameCard[] = [
   // 1. Dùng 1 lần
+  {
+    id: "s_lifesteal",
+    name: "Life Steal (Trộm Sinh Lực)",
+    type: CardType.SHADOW,
+    description: "Chọn 1 người còn sống khác nhận 2 sát thương; bạn hồi bằng sát thương thực tế gây ra.",
+    isEquipment: false,
+    effectText: "Hút tối đa 2 HP từ một mục tiêu."
+  },
+  {
+    id: "s_darkness",
+    name: "Devouring Darkness (Bóng Tối Nuốt Chửng)",
+    type: CardType.SHADOW,
+    description: "Người còn sống có HP hiện tại cao nhất nhận 3 sát thương. Nếu hòa, chọn ngẫu nhiên.",
+    isEquipment: false,
+    effectText: "Gây 3 sát thương cho một người đang có HP cao nhất."
+  },
+  {
+    id: "s_chaos",
+    name: "Chaos (Hỗn Loạn)",
+    type: CardType.SHADOW,
+    description: "Hoán đổi ngẫu nhiên vị trí hiện tại của tất cả người còn sống.",
+    isEquipment: false,
+    effectText: "Xáo trộn vị trí của toàn bộ người còn sống."
+  },
+  {
+    id: "s_pandora",
+    name: "Pandora's Box (Hộp Pandora)",
+    type: CardType.SHADOW,
+    description: "Tung D6: 1-2 bạn mất 3 HP; 3-4 mọi người còn sống mất 1 HP; 5-6 bạn hồi đầy máu.",
+    isEquipment: false,
+    effectText: "Một hiệu ứng ngẫu nhiên mạnh sẽ xảy ra."
+  },
   {
     id: "s_bomb",
     name: "Bomb (Bom)",

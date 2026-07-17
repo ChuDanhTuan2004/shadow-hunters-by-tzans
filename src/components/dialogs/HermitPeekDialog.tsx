@@ -24,7 +24,7 @@ export default function HermitPeekDialog({ activeGame, playerId, onClose }: Herm
         className="bg-neutral-950 border border-neutral-800 p-6 rounded-3xl w-full max-w-sm shadow-2xl space-y-5 text-center relative overflow-hidden cursor-default"
       >
         <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-widest inline-block">
-          Dự Đoán Của Ẩn Sĩ
+          Mật Báo / Thánh Nhãn
         </span>
         <div className="space-y-2">
           <h3 className="text-white font-extrabold text-sm uppercase tracking-wide">
