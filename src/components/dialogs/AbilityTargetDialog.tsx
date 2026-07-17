@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Player, GameState } from "../../types";
+import { Alignment, Player, GameState } from "../../types";
+import { areLocationsInSameArea } from "../../data/locations";
 import { X } from "lucide-react";
 
 interface AbilityTargetDialogProps {
@@ -18,6 +19,7 @@ export default function AbilityTargetDialog({
   onConfirm
 }: AbilityTargetDialogProps) {
   const [selectedTargetId, setSelectedTargetId] = useState<string>("");
+  const [guessedAlignment, setGuessedAlignment] = useState<Alignment | "">("");
 
   if (!isOpen) {
     return null;
@@ -44,12 +46,26 @@ export default function AbilityTargetDialog({
     targetablePlayers = activeGame.players.filter(p => !p.isDead && p.id !== playerId && p.character.alignment === currentPlayer.character.alignment);
   } else if (charName.startsWith("Morrigan")) {
     targetablePlayers = activeGame.players.filter(p => !p.isDead && p.id !== playerId);
+  } else if (charName.startsWith("Aria")) {
+    targetablePlayers = activeGame.players.filter(p => !p.isDead);
+  } else if (charName.startsWith("Roland")) {
+    const hasHandgun = currentPlayer.equipments.includes("s_handgun");
+    targetablePlayers = activeGame.players.filter(p => {
+      if (p.isDead || p.id === playerId) return false;
+      const sameArea = areLocationsInSameArea(currentPlayer.locationId, p.locationId);
+      return hasHandgun ? !sameArea : sameArea;
+    });
+  } else if (charName.startsWith("Selene")) {
+    targetablePlayers = activeGame.players.filter(p => !p.isDead && p.id !== playerId && !areLocationsInSameArea(currentPlayer.locationId, p.locationId));
+  } else if (charName.startsWith("Ezekiel")) {
+    targetablePlayers = activeGame.players.filter(p => !p.isDead && p.id !== playerId && !p.alignmentRevealed);
   }
 
   const handleConfirm = () => {
-    if (selectedTargetId) {
-      onConfirm(selectedTargetId);
+    if (selectedTargetId && (!charName.startsWith("Ezekiel") || guessedAlignment)) {
+      onConfirm(charName.startsWith("Ezekiel") ? `${selectedTargetId}:${guessedAlignment}` : selectedTargetId);
       setSelectedTargetId("");
+      setGuessedAlignment("");
     }
   };
 
@@ -102,6 +118,18 @@ export default function AbilityTargetDialog({
             </select>
           </div>
 
+          {charName.startsWith("Ezekiel") && (
+            <div className="space-y-2">
+              <label className="block text-[11px] font-semibold text-neutral-400">Đoán phe của mục tiêu:</label>
+              <select value={guessedAlignment} onChange={e => setGuessedAlignment(e.target.value as Alignment)} className="w-full px-3 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-xs text-white">
+                <option value="">-- Chọn phe dự đoán --</option>
+                <option value={Alignment.SHADOW}>Bóng Tối</option>
+                <option value={Alignment.HUNTER}>Thợ Săn</option>
+                <option value={Alignment.NEUTRAL}>Trung Lập</option>
+              </select>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3 pt-2">
             <button
               onClick={onClose}
@@ -111,7 +139,7 @@ export default function AbilityTargetDialog({
             </button>
             <button
               onClick={handleConfirm}
-              disabled={"" === selectedTargetId}
+              disabled={"" === selectedTargetId || (charName.startsWith("Ezekiel") && !guessedAlignment)}
               className="w-full py-2 bg-[#4437AC] hover:bg-[#4437AC]/90 disabled:opacity-30 rounded-xl text-xs font-bold text-white transition-all shadow cursor-pointer text-center"
             >
               Xác Nhận

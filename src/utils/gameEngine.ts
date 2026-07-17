@@ -552,6 +552,7 @@ export function performAttack(
   const target = updatedPlayers.find(p => p.id === targetId)!;
 
   if (attacker.isDead || target.isDead) return gameState;
+  if (attacker.character.name.startsWith("Roland") && attacker.rolandDuelTargetId && attacker.rolandDuelTargetId !== targetId) return gameState;
 
   let damageRoll = 0;
   let diceDetail = "";
@@ -632,6 +633,11 @@ export function performAttack(
     }
 
     let finalDamage = damageRoll + damageBonus;
+
+    if (attacker.alignmentRevealed && attacker.character.name.startsWith("Roland") && !attacker.abilityDisabled && attacker.rolandDuelTargetId === currTarget.id && finalDamage > 0) {
+      finalDamage += 2;
+      logs.push(createLog(`⚔️ [Quyết Đấu] Roland [${attacker.name}] gây thêm 2 sát thương lên ${currTarget.name}!`, "action"));
+    }
 
     if (attacker.alignmentRevealed && attacker.character.name.startsWith("Cerberus") && !attacker.abilityDisabled && attacker.cerberusTargetId === currTarget.id && finalDamage > 0) {
       finalDamage += 2;
@@ -1508,16 +1514,16 @@ export function activateCharacterAbility(
   if (player.isDead) return gameState;
 
   const wasAlreadyRevealed = player.alignmentRevealed;
+  const charName = player.character.name;
 
   // Tiết lộ thân phận nếu chưa lộ
-  if (!player.alignmentRevealed) {
+  const isUnresolvedEzekielGuess = charName.startsWith("Ezekiel") && !!targetPlayerId && !player.hasUsedAbility;
+  if (!player.alignmentRevealed && !isUnresolvedEzekielGuess) {
     player.alignmentRevealed = true;
     logs.push(createLog(`📣 TIẾT LỘ THÂN PHẬN! ${player.name} tiết lộ vai diễn là [${player.character.name}] thuộc phe [${player.character.alignment}]!`, "reveal"));
   }
 
   // Thực hiện kỹ năng tương ứng
-  const charName = player.character.name;
-
   if (charName.startsWith("Allie")) {
     if (!player.hasUsedAbility && !player.abilityDisabled) {
       player.currentHp = player.character.hp;
@@ -1742,6 +1748,61 @@ export function activateCharacterAbility(
         logs.push(createLog(`🕯️ [Lời Nguyền Lan Truyền] Morrigan [${player.name}] chuyển Dấu Ấn Tử Thần sang ${target.name}!`, "action"));
       } else {
         logs.push(createLog(`⚠️ Morrigan hiện không mang Độc Dược hoặc Dấu Ấn Tử Thần để chuyển đi!`, "system"));
+      }
+    }
+  } else if (charName.startsWith("Aria")) {
+    if (!player.hasUsedAbility && !player.abilityDisabled && targetPlayerId) {
+      const target = updatedPlayers.find(p => p.id === targetPlayerId && !p.isDead);
+      if (target) {
+        const cleansed = !!target.mgangaPoisoned || !!target.hasDeathMark;
+        target.mgangaPoisoned = false;
+        target.hasDeathMark = false;
+        player.hasUsedAbility = true;
+        logs.push(createLog(cleansed
+          ? `🌅 [Bình Minh Thanh Tẩy] Aria [${player.name}] xóa mọi Độc Dược và Dấu Ấn khỏi ${target.name}!`
+          : `🌅 [Bình Minh Thanh Tẩy] ${target.name} không mang trạng thái bất lợi nào.`, "action"));
+      }
+    }
+  } else if (charName.startsWith("Roland")) {
+    if (!player.hasUsedAbility && !player.abilityDisabled && targetPlayerId) {
+      const target = updatedPlayers.find(p => p.id === targetPlayerId && !p.isDead && p.id !== player.id);
+      if (target) {
+        player.rolandDuelTargetId = target.id;
+        player.hasUsedAbility = true;
+        logs.push(createLog(`⚔️ [Quyết Đấu] Roland [${player.name}] thách đấu ${target.name}; đòn đánh trong lượt được cộng 2 sát thương!`, "action"));
+      }
+    }
+  } else if (charName.startsWith("Selene")) {
+    if (!player.hasUsedAbility && !player.abilityDisabled && targetPlayerId) {
+      const target = updatedPlayers.find(p => p.id === targetPlayerId && !p.isDead && p.id !== player.id && !areLocationsInSameArea(player.locationId, p.locationId));
+      if (target) {
+        player.hasUsedAbility = true;
+        target.currentHp = Math.max(0, target.currentHp - 1);
+        logs.push(createLog(`🌙 [Viễn Tiễn] Selene [${player.name}] bắn ${target.name} ở khu vực khác, gây 1 sát thương cố định!`, "attack"));
+        if (target.currentHp <= 0) {
+          target.isDead = true;
+          target.alignmentRevealed = true;
+          logs.push(createLog(`☠️ ${target.name} tử trận bởi Viễn Tiễn! Thân phận: [${target.character.name}] - Phe [${target.character.alignment}].`, "reveal"));
+        }
+      }
+    }
+  } else if (charName.startsWith("Ezekiel")) {
+    if (!player.hasUsedAbility && !player.abilityDisabled && targetPlayerId) {
+      const [actualTargetId, guessedAlignment] = targetPlayerId.split(":");
+      const target = updatedPlayers.find(p => p.id === actualTargetId && !p.isDead && !p.alignmentRevealed);
+      if (target && Object.values(Alignment).includes(guessedAlignment as Alignment)) {
+        player.hasUsedAbility = true;
+        if (target.character.alignment === guessedAlignment) {
+          target.alignmentRevealed = true;
+          target.currentHp = Math.max(0, target.currentHp - 2);
+          logs.push(createLog(`⚖️ [Thẩm Vấn] Ezekiel [${player.name}] đoán đúng phe của ${target.name}! Mục tiêu lộ diện và nhận 2 sát thương.`, "reveal"));
+          if (target.currentHp <= 0) target.isDead = true;
+        } else {
+          player.alignmentRevealed = true;
+          player.currentHp = Math.max(0, player.currentHp - 2);
+          logs.push(createLog(`⚖️ [Thẩm Vấn] Ezekiel [${player.name}] đoán sai, buộc phải lộ diện và nhận 2 sát thương!`, "reveal"));
+          if (player.currentHp <= 0) player.isDead = true;
+        }
       }
     }
   } else if (charName.startsWith("Volkath")) {
@@ -2321,6 +2382,18 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
       const foe = updatedState.players.find(p => p.id !== botId && !p.isDead && p.character.alignment !== Alignment.SHADOW);
       if (foe) updatedState = activateCharacterAbility(updatedState, botId, foe.id);
     }
+    if (botChar.startsWith("Aria") && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
+      const afflicted = updatedState.players.find(p => !p.isDead && (p.mgangaPoisoned || p.hasDeathMark));
+      if (afflicted) updatedState = activateCharacterAbility(updatedState, botId, afflicted.id);
+    }
+    if (botChar.startsWith("Ezekiel") && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
+      const unknown = updatedState.players.find(p => p.id !== botId && !p.isDead && !p.alignmentRevealed);
+      if (unknown) {
+        const guesses = [Alignment.SHADOW, Alignment.HUNTER, Alignment.NEUTRAL];
+        const guess = guesses[Math.floor(Math.random() * guesses.length)];
+        updatedState = activateCharacterAbility(updatedState, botId, `${unknown.id}:${guess}`);
+      }
+    }
 
     updatedState.phase = "attack";
   }
@@ -2336,7 +2409,12 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
       return hasHandgun ? !inSame : inSame;
     });
 
-    if (0 < attackableTargets.length && 1 !== updatedState.roundNumber) {
+    if (botChar.startsWith("Selene") && 1 !== updatedState.roundNumber && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
+      const distantTarget = updatedState.players.filter(p => p.id !== botId && !p.isDead && !areLocationsInSameArea(currentLoc, p.locationId)).sort((a, b) => a.currentHp - b.currentHp)[0];
+      if (distantTarget) updatedState = activateCharacterAbility(updatedState, botId, distantTarget.id);
+    }
+
+    if (0 < attackableTargets.length && 1 !== updatedState.roundNumber && !(botChar.startsWith("Selene") && updatedState.players.find(p => p.id === botId)?.hasUsedAbility)) {
       // Ưu tiên tấn công kẻ địch đã tiết lộ danh tính tương khắc hoặc tấn công bừa nếu chưa biết vai trò
       let bestTarget = attackableTargets[0];
 
@@ -2353,6 +2431,10 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
       } else {
         // Chọn mục tiêu có ít HP nhất để dứt điểm
         bestTarget = [...attackableTargets].sort((a, b) => a.currentHp - b.currentHp)[0];
+      }
+
+      if (botChar.startsWith("Roland") && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
+        updatedState = activateCharacterAbility(updatedState, botId, bestTarget.id);
       }
 
       // Thực hiện tấn công
@@ -2390,6 +2472,9 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
         updatedState.players = updatedState.players.map(p => p.lightEquipmentDisabled ? { ...p, lightEquipmentDisabled: false } : p);
       }
       const currentBotPlayer = updatedState.players[updatedState.turnIndex];
+      if (currentBotPlayer.rolandDuelTargetId) {
+        updatedState.players = updatedState.players.map(p => p.id === currentBotPlayer.id ? { ...p, rolandDuelTargetId: null } : p);
+      }
 
       if (currentBotPlayer.extraTurnCount && currentBotPlayer.extraTurnCount > 0 && !currentBotPlayer.isDead) {
         updatedState.players = updatedState.players.map(p =>
@@ -2525,7 +2610,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
         }
 
         // Các kỹ năng dùng một lần mỗi lượt được reset ở đầu lượt mới.
-        if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen") || nextPlayer.character.name.startsWith("Charles") || nextPlayer.character.name.startsWith("Lilith") || nextPlayer.character.name.startsWith("Morrigan")) {
+        if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen") || nextPlayer.character.name.startsWith("Charles") || nextPlayer.character.name.startsWith("Lilith") || nextPlayer.character.name.startsWith("Morrigan") || nextPlayer.character.name.startsWith("Aria") || nextPlayer.character.name.startsWith("Selene")) {
           updatedState.players = updatedState.players.map(p =>
             p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
           );

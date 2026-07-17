@@ -364,11 +364,15 @@ export default function ActionControls({
               currentTurnPlayer.character.name.startsWith("Ellen") ||
               currentTurnPlayer.character.name.startsWith("Ilumia") ||
               currentTurnPlayer.character.name.startsWith("Noctis") ||
+              currentTurnPlayer.character.name.startsWith("Ezekiel") ||
               (currentTurnPlayer.character.name.startsWith("George") && "roll" === activeGame.phase) ||
               (currentTurnPlayer.character.name.startsWith("Mganga") && "roll" === activeGame.phase) ||
               (currentTurnPlayer.character.name.startsWith("Helen") && "roll" === activeGame.phase) ||
               (currentTurnPlayer.character.name.startsWith("Lilith") && "roll" === activeGame.phase) ||
-              (currentTurnPlayer.character.name.startsWith("Morrigan") && "roll" === activeGame.phase)) &&
+              (currentTurnPlayer.character.name.startsWith("Morrigan") && "roll" === activeGame.phase) ||
+              (currentTurnPlayer.character.name.startsWith("Aria") && "roll" === activeGame.phase) ||
+              (currentTurnPlayer.character.name.startsWith("Roland") && "attack" === activeGame.phase) ||
+              (currentTurnPlayer.character.name.startsWith("Selene") && "attack" === activeGame.phase)) &&
             !currentTurnPlayer.hasUsedAbility &&
             !currentTurnPlayer.abilityDisabled
           ) {

@@ -168,6 +168,38 @@ export const CHARACTERS: Character[] = [
     abilityDesc: "Đầu mỗi lượt: Hồi 2 máu cho 1 người được chỉ định.",
     winCondition: "Giết hết tất cả Shadow."
   },
+  {
+    name: "Aria (Nữ Tu Ánh Bình Minh)",
+    alignment: Alignment.HUNTER,
+    hp: 11,
+    abilityName: "Bình minh thanh tẩy",
+    abilityDesc: "Đầu mỗi lượt: Xóa Độc Dược và Dấu Ấn Tử Thần khỏi một người còn sống.",
+    winCondition: "Giết hết tất cả Shadow."
+  },
+  {
+    name: "Roland (Kỵ Sĩ Phán Quyết)",
+    alignment: Alignment.HUNTER,
+    hp: 14,
+    abilityName: "Quyết đấu",
+    abilityDesc: "Một lần: Chọn một người trong tầm đánh. Đòn tấn công của Roland vào họ trong lượt này được cộng 2 sát thương và không thể đổi mục tiêu.",
+    winCondition: "Giết hết tất cả Shadow."
+  },
+  {
+    name: "Selene (Xạ Thủ Ánh Trăng)",
+    alignment: Alignment.HUNTER,
+    hp: 10,
+    abilityName: "Viễn tiễn",
+    abilityDesc: "Đầu mỗi lượt: Thay cho đòn tấn công, gây 1 sát thương cố định lên một người ở khu vực khác.",
+    winCondition: "Giết hết tất cả Shadow."
+  },
+  {
+    name: "Ezekiel (Quan Tòa Linh Hồn)",
+    alignment: Alignment.HUNTER,
+    hp: 12,
+    abilityName: "Thẩm vấn",
+    abilityDesc: "Một lần: Đoán phe của một người chưa lộ diện. Đúng: họ lộ diện và nhận 2 sát thương. Sai: Ezekiel lộ diện và nhận 2 sát thương.",
+    winCondition: "Giết hết tất cả Shadow."
+  },
 
   // PHE NEUTRAL
   {

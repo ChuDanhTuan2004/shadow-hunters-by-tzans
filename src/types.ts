@@ -71,6 +71,7 @@ export interface Player {
   mgangaPoisoned?: boolean;
   lightEquipmentDisabled?: boolean; // Nhật Thực Noctis tạm khóa trang bị Trắng
   cerberusTargetId?: string | null; // Mục tiêu đang bị Cerberus truy sát
+  rolandDuelTargetId?: string | null; // Mục tiêu Quyết Đấu trong lượt hiện tại
   characterOptions?: string[]; // 2 nhân vật được rút để chọn (multiplayer)
   characterChoice?: string | null; // null = chưa chọn, string = đã chọn
 }
