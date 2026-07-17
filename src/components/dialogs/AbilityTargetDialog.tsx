@@ -40,6 +40,10 @@ export default function AbilityTargetDialog({
   } else if (charName.startsWith("Franklin") || charName.startsWith("Ellen") || charName.startsWith("George") || charName.startsWith("Mganga")) {
     // Franklin, Ellen, George, Mganga: target any alive player except self
     targetablePlayers = activeGame.players.filter((p) => !p.isDead && p.id !== playerId);
+  } else if (charName.startsWith("Lilith")) {
+    targetablePlayers = activeGame.players.filter(p => !p.isDead && p.id !== playerId && p.character.alignment === currentPlayer.character.alignment);
+  } else if (charName.startsWith("Morrigan")) {
+    targetablePlayers = activeGame.players.filter(p => !p.isDead && p.id !== playerId);
   }
 
   const handleConfirm = () => {

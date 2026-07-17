@@ -68,6 +68,38 @@ export const CHARACTERS: Character[] = [
     abilityDesc: "Đầu mỗi lượt: Hồi [(Số lượng người phe Shadow còn sống) + 2] máu mỗi lượt.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
   },
+  {
+    name: "Lilith (Nữ Vương Huyết Nguyệt)",
+    alignment: Alignment.SHADOW,
+    hp: 12,
+    abilityName: "Huyết ước",
+    abilityDesc: "Đầu mỗi lượt: Mất 1 HP để hồi 2 HP cho một Shadow khác.",
+    winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
+  },
+  {
+    name: "Noctis (Kẻ Nuốt Ánh Sáng)",
+    alignment: Alignment.SHADOW,
+    hp: 13,
+    abilityName: "Nhật thực",
+    abilityDesc: "Một lần: Vô hiệu hóa trang bị Trắng của tất cả người khác đến đầu lượt tiếp theo của Noctis.",
+    winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
+  },
+  {
+    name: "Morrigan (Phù Thủy Tai Ương)",
+    alignment: Alignment.SHADOW,
+    hp: 10,
+    abilityName: "Lời nguyền lan truyền",
+    abilityDesc: "Đầu mỗi lượt: Chuyển Độc Dược hoặc Dấu Ấn Tử Thần đang mang sang một người khác.",
+    winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
+  },
+  {
+    name: "Cerberus (Chó Săn Địa Ngục)",
+    alignment: Alignment.SHADOW,
+    hp: 15,
+    abilityName: "Truy sát",
+    abilityDesc: "Mục tiêu sống sót sau đòn đánh bị đánh dấu. Đòn tiếp theo của Cerberus vào họ gây thêm 2 sát thương.",
+    winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
+  },
 
   // PHE HUNTER (Base Game)
   {

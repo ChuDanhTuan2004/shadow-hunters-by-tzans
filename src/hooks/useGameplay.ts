@@ -870,7 +870,7 @@ export function useGameplay({
         ...nextState.logs
       ];
     } else {
-      if (target.equipments.includes("l_fortune")) {
+      if (!target.lightEquipmentDisabled && target.equipments.includes("l_fortune")) {
         nextState.logs = [
           createLog(`🛡️ [Cài Áo May Mắn] giúp ${target.name} kháng cự hoàn toàn sát thương từ Rừng Quái Dị!`, "action"),
           ...nextState.logs
@@ -942,7 +942,7 @@ export function useGameplay({
     const currentPlayer = activeGame.players[getTurnIndex()];
     const charName = currentPlayer.character.name;
 
-    const needsTarget = charName.startsWith("Fuka") || charName.startsWith("Franklin") || charName.startsWith("Ellen") || charName.startsWith("George") || charName.startsWith("Mganga") || charName.startsWith("Helen");
+    const needsTarget = charName.startsWith("Fuka") || charName.startsWith("Franklin") || charName.startsWith("Ellen") || charName.startsWith("George") || charName.startsWith("Mganga") || charName.startsWith("Helen") || charName.startsWith("Lilith") || charName.startsWith("Morrigan");
     
     if (needsTarget && !targetPlayerId && !currentPlayer.hasUsedAbility && !currentPlayer.abilityDisabled) {
       setShowAbilityTargetDialog(true);
@@ -1150,6 +1150,9 @@ export function useGameplay({
   // Helper kết thúc lượt chơi
   const endTurnTransition = (state: GameState): GameState => {
     const nextState = { ...state };
+    if (!nextState.players.some(p => !p.isDead && p.character.name.startsWith("Noctis"))) {
+      nextState.players = nextState.players.map(p => p.lightEquipmentDisabled ? { ...p, lightEquipmentDisabled: false } : p);
+    }
     const currentPlayer = nextState.players[nextState.turnIndex];
 
     if (currentPlayer.extraTurnCount && currentPlayer.extraTurnCount > 0 && !currentPlayer.isDead) {
@@ -1158,6 +1161,9 @@ export function useGameplay({
           ? { ...p, extraTurnCount: p.extraTurnCount! - 1, hasUsedAbility: false }
           : p
       );
+      if (currentPlayer.character.name.startsWith("Noctis")) {
+        nextState.players = nextState.players.map(p => p.lightEquipmentDisabled ? { ...p, lightEquipmentDisabled: false } : p);
+      }
       nextState.phase = "roll" as const;
       nextState.rolledDice = null;
       nextState.selectedCard = null;
@@ -1274,7 +1280,11 @@ export function useGameplay({
       }
     }
 
-    if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen") || nextPlayer.character.name.startsWith("Charles")) {
+    if (nextPlayer.character.name.startsWith("Noctis")) {
+      nextState.players = nextState.players.map(p => p.lightEquipmentDisabled ? { ...p, lightEquipmentDisabled: false } : p);
+    }
+
+    if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen") || nextPlayer.character.name.startsWith("Charles") || nextPlayer.character.name.startsWith("Lilith") || nextPlayer.character.name.startsWith("Morrigan")) {
       nextState.players = nextState.players.map(p =>
         p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
       );

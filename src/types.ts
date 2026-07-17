@@ -69,6 +69,8 @@ export interface Player {
   agnesTargetPlayerId?: string | null;
   bryanKilledHp13?: boolean;
   mgangaPoisoned?: boolean;
+  lightEquipmentDisabled?: boolean; // Nhật Thực Noctis tạm khóa trang bị Trắng
+  cerberusTargetId?: string | null; // Mục tiêu đang bị Cerberus truy sát
   characterOptions?: string[]; // 2 nhân vật được rút để chọn (multiplayer)
   characterChoice?: string | null; // null = chưa chọn, string = đã chọn
 }
