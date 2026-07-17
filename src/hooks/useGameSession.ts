@@ -168,6 +168,13 @@ export function useGameSession() {
 
         setActiveGame(updatedState);
 
+        // Host đưa phòng về lobby sau khi trận kết thúc: chuyển đồng bộ tất cả
+        // client đang ở màn chơi/game over về lại phòng chờ.
+        if ("playing" === view && updatedState.phase === "lobby") {
+          setView("waiting_room");
+          return;
+        }
+
         if (("waiting_room" === view || "character_select" === view) && updatedState.phase === "character_select") {
           setView("character_select");
           return;

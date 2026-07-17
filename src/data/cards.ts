@@ -395,6 +395,14 @@ export let DECK_LIGHT: GameCard[] = [
     isEquipment: false,
     effectText: "Hồi 2 máu cho bản thân."
   },
+  {
+    id: "l_fullheal",
+    name: "Full Recovery (Hồi Đầy Máu)",
+    type: CardType.LIGHT,
+    description: "Hồi đầy máu cho bản thân.",
+    isEquipment: false,
+    effectText: "Hồi HP của bản thân lên mức tối đa."
+  },
 
   // 2. Trang bị
   {
@@ -449,6 +457,14 @@ export let DECK_LIGHT: GameCard[] = [
 
 export let DECK_SHADOW: GameCard[] = [
   // 1. Dùng 1 lần
+  {
+    id: "s_bomb",
+    name: "Bomb (Bom)",
+    type: CardType.SHADOW,
+    description: "Ngẫu nhiên 1 người chơi còn sống trên bản đồ nhận 3 sát thương.",
+    isEquipment: false,
+    effectText: "Một người chơi ngẫu nhiên trên bản đồ nhận 3 sát thương."
+  },
   {
     id: "s_banana",
     name: "Banana Peel (Vỏ Chuối)",

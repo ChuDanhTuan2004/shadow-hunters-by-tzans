@@ -1062,6 +1062,29 @@ export function useGameCard(
         logs.push(createLog(`🥛 [Nước Thánh Trị Liệu] giúp ${source.name} hồi phục 2 HP.`, "action"));
         break;
 
+      case "l_fullheal": // Hồi đầy HP cho người rút bài
+        source.currentHp = source.character.hp;
+        logs.push(createLog(`💖 [Hồi Đầy Máu] ${source.name} được hồi phục hoàn toàn (${source.currentHp}/${source.character.hp} HP)!`, "action"));
+        break;
+
+      case "s_bomb": { // Một người còn sống trên bản đồ nhận 3 sát thương
+        const candidates = updatedPlayers.filter(p => !p.isDead);
+        if (candidates.length === 0) {
+          logs.push(createLog(`💣 [Bom] Không có người chơi nào trên bản đồ nên quả bom không gây sát thương.`, "action"));
+          break;
+        }
+
+        const victim = candidates[Math.floor(Math.random() * candidates.length)];
+        victim.currentHp = Math.max(0, victim.currentHp - 3);
+        logs.push(createLog(`💣 [Bom] phát nổ bên cạnh ${victim.name}, gây 3 sát thương!`, "action"));
+        if (victim.currentHp <= 0) {
+          victim.isDead = true;
+          victim.alignmentRevealed = true;
+          logs.push(createLog(`☠️ ${victim.name} tử trận vì vụ nổ! Thân phận thực sự: [${victim.character.name}] - Phe [${victim.character.alignment}].`, "reveal"));
+        }
+        break;
+      }
+
       case "s_banana": // Banana Peel: Đưa 1 trang bị cho người khác hoặc tự mất 1 HP
         if (targetPlayerId) {
           const parts = targetPlayerId.split(":");
