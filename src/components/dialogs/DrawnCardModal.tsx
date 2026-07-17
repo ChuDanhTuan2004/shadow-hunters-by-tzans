@@ -131,7 +131,7 @@ export default function DrawnCardModal({
                     })}
                 </select>
               </div>
-            ) : "l_firstaid" === activeDrawnCard.id || "l_blessing" === activeDrawnCard.id || "l_disenchant" === activeDrawnCard.id || "l_team_blessing" === activeDrawnCard.id || "l_holy_eye" === activeDrawnCard.id || "s_lifesteal" === activeDrawnCard.id || "s_spider" === activeDrawnCard.id || "s_doll" === activeDrawnCard.id || activeDrawnCard.id.startsWith("s_bat") ? (
+            ) : "l_firstaid" === activeDrawnCard.id || "l_blessing" === activeDrawnCard.id || "l_disenchant" === activeDrawnCard.id || "l_team_blessing" === activeDrawnCard.id || "l_holy_eye" === activeDrawnCard.id || "s_lifesteal" === activeDrawnCard.id || "s_death_mark" === activeDrawnCard.id || "s_blood_sacrifice" === activeDrawnCard.id || "s_spider" === activeDrawnCard.id || "s_doll" === activeDrawnCard.id || activeDrawnCard.id.startsWith("s_bat") ? (
               <div className="space-y-2 text-left">
                 <label className="block text-[11px] font-semibold text-neutral-400">
                   Chọn 1 đối tượng để kích hoạt hiệu ứng:
@@ -308,7 +308,7 @@ export default function DrawnCardModal({
                 onClick={handleConfirm}
                 disabled={
                   (CardType.HERMIT === activeDrawnCard.type && !selectedTargetId) ||
-                  (("l_firstaid" === activeDrawnCard.id || "l_blessing" === activeDrawnCard.id || "l_disenchant" === activeDrawnCard.id || "l_team_blessing" === activeDrawnCard.id || "l_holy_eye" === activeDrawnCard.id || "s_lifesteal" === activeDrawnCard.id || "s_spider" === activeDrawnCard.id || "s_doll" === activeDrawnCard.id || activeDrawnCard.id.startsWith("s_bat")) && !selectedTargetId) ||
+                  (("l_firstaid" === activeDrawnCard.id || "l_blessing" === activeDrawnCard.id || "l_disenchant" === activeDrawnCard.id || "l_team_blessing" === activeDrawnCard.id || "l_holy_eye" === activeDrawnCard.id || "s_lifesteal" === activeDrawnCard.id || "s_death_mark" === activeDrawnCard.id || "s_blood_sacrifice" === activeDrawnCard.id || "s_spider" === activeDrawnCard.id || "s_doll" === activeDrawnCard.id || activeDrawnCard.id.startsWith("s_bat")) && !selectedTargetId) ||
                   ("s_banana" === activeDrawnCard.id && (!selectedTargetId || (activeGame.players.find(p => playerId === p.id)?.equipments.length || 0) > 0 && !selectedEquipId)) ||
                   (activeDrawnCard.id.startsWith("s_goblin") && (!selectedTargetId.split(":")[0] || !selectedEquipId))
                 }

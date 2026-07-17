@@ -59,6 +59,8 @@ export interface Player {
   isDead: boolean;
   color: string;
   hasGuardianAngel?: boolean;
+  hasHolyShield?: boolean; // Chặn một đòn tấn công gây sát thương rồi biến mất
+  hasDeathMark?: boolean; // Đòn tấn công tiếp theo nhận thêm 2 sát thương
   hasGregorShield?: boolean;  // Gregor: không nhận sát thương đến đầu lượt sau
   abilityDisabled?: boolean;  // Ellen: vô hiệu hóa kỹ năng bị chọn vĩnh viễn
   extraTurnCount?: number;

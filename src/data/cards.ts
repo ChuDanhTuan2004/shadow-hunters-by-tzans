@@ -316,6 +316,22 @@ export let DECK_HERMIT: GameCard[] = [
 export let DECK_LIGHT: GameCard[] = [
   // 1. Dùng 1 lần
   {
+    id: "l_holy_shield",
+    name: "Holy Shield (Khiên Thánh)",
+    type: CardType.LIGHT,
+    description: "Chặn hoàn toàn đòn tấn công gây sát thương tiếp theo nhắm vào bạn.",
+    isEquipment: false,
+    effectText: "Tồn tại cho đến khi chặn thành công một đòn tấn công."
+  },
+  {
+    id: "l_fair_judgement",
+    name: "Fair Judgement (Phán Xét Công Bằng)",
+    type: CardType.LIGHT,
+    description: "Một người có HP cao nhất nhận 2 sát thương; một người có HP thấp nhất hồi 2 HP. Nếu hòa, chọn ngẫu nhiên.",
+    isEquipment: false,
+    effectText: "Cân bằng HP giữa người mạnh nhất và yếu nhất."
+  },
+  {
     id: "l_cleanse",
     name: "Purifying Light (Ánh Sáng Thanh Tẩy)",
     type: CardType.LIGHT,
@@ -489,6 +505,22 @@ export let DECK_LIGHT: GameCard[] = [
 
 export let DECK_SHADOW: GameCard[] = [
   // 1. Dùng 1 lần
+  {
+    id: "s_death_mark",
+    name: "Death Mark (Dấu Ấn Tử Thần)",
+    type: CardType.SHADOW,
+    description: "Chọn 1 người còn sống khác. Đòn tấn công tiếp theo nhắm vào họ được cộng 2 sát thương.",
+    isEquipment: false,
+    effectText: "Dấu ấn biến mất sau khi mục tiêu bị tấn công."
+  },
+  {
+    id: "s_blood_sacrifice",
+    name: "Blood Sacrifice (Hiến Tế Máu)",
+    type: CardType.SHADOW,
+    description: "Bạn mất 2 HP để gây 4 sát thương lên 1 người còn sống khác.",
+    isEquipment: false,
+    effectText: "Đổi sinh lực của bản thân lấy sát thương lớn."
+  },
   {
     id: "s_lifesteal",
     name: "Life Steal (Trộm Sinh Lực)",

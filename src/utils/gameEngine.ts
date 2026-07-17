@@ -500,22 +500,34 @@ export function calculateDamageTaken(target: Player, baseDamage: number, attacke
   let finalDamage = baseDamage;
   let logMsg = "";
 
+  if (target.hasDeathMark && finalDamage > 0) {
+    finalDamage += 2;
+    target.hasDeathMark = false;
+    logMsg += `☠️ [Dấu Ấn Tử Thần] trên ${target.name} kích hoạt, cộng thêm 2 sát thương. `;
+  }
+
   // Holy Robe: công -1, thủ +1 (giảm 1 sát thương nhận từ đòn đánh thường)
   if (target.equipments.includes("l_holyrobe") && finalDamage > 0) {
     finalDamage = Math.max(0, finalDamage - 1);
-    logMsg = `🛡️ [Thánh Bào] giảm bớt 1 sát thương nhận vào của ${target.name}. `;
+    logMsg += `🛡️ [Thánh Bào] giảm bớt 1 sát thương nhận vào của ${target.name}. `;
   }
 
   // Guardian Angel: kháng sát thương hoàn toàn từ attack của người khác
   if (target.hasGuardianAngel && finalDamage > 0) {
     finalDamage = 0;
-    logMsg = `🛡️ [Thiên Thần Hộ Mệnh] kích hoạt bảo vệ ${target.name} khỏi mọi đòn tấn công! `;
+    logMsg += `🛡️ [Thiên Thần Hộ Mệnh] kích hoạt bảo vệ ${target.name} khỏi mọi đòn tấn công! `;
   }
 
   // Gregor shield: kháng sát thương hoàn toàn cho đến đầu lượt sau
   if (target.hasGregorShield && finalDamage > 0) {
     finalDamage = 0;
-    logMsg = `🛡️ [Áo Giáp Thép Gregor] kích hoạt bảo vệ ${target.name} khỏi mọi sát thương! `;
+    logMsg += `🛡️ [Áo Giáp Thép Gregor] kích hoạt bảo vệ ${target.name} khỏi mọi sát thương! `;
+  }
+
+  if (target.hasHolyShield && finalDamage > 0) {
+    finalDamage = 0;
+    target.hasHolyShield = false;
+    logMsg += `✨ [Khiên Thánh] chặn hoàn toàn đòn tấn công nhắm vào ${target.name} và tan biến! `;
   }
 
   return { finalDamage, logMsg };
@@ -982,6 +994,61 @@ export function useGameCard(
   } else {
     // Thẻ hành động tiêu dùng một lần
     switch (cardId) {
+      case "l_holy_shield":
+        source.hasHolyShield = true;
+        logs.push(createLog(`✨ [Khiên Thánh] bao phủ ${source.name}, sẵn sàng chặn đòn tấn công gây sát thương tiếp theo!`, "action"));
+        break;
+
+      case "l_fair_judgement": {
+        const alive = updatedPlayers.filter(p => !p.isDead);
+        if (alive.length >= 2) {
+          const highestHp = Math.max(...alive.map(p => p.currentHp));
+          const highCandidates = alive.filter(p => p.currentHp === highestHp);
+          const punished = highCandidates[Math.floor(Math.random() * highCandidates.length)];
+          const lowestHp = Math.min(...alive.filter(p => p.id !== punished.id).map(p => p.currentHp));
+          const lowCandidates = alive.filter(p => p.id !== punished.id && p.currentHp === lowestHp);
+          const healed = lowCandidates[Math.floor(Math.random() * lowCandidates.length)];
+
+          punished.currentHp = Math.max(0, punished.currentHp - 2);
+          healed.currentHp = Math.min(healed.character.hp, healed.currentHp + 2);
+          logs.push(createLog(`⚖️ [Phán Xét Công Bằng] ${punished.name} nhận 2 sát thương, còn ${healed.name} hồi 2 HP!`, "action"));
+          if (punished.currentHp <= 0) {
+            punished.isDead = true;
+            punished.alignmentRevealed = true;
+            logs.push(createLog(`☠️ ${punished.name} tử trận dưới sự phán xét! Thân phận: [${punished.character.name}] - Phe [${punished.character.alignment}].`, "reveal"));
+          }
+        } else {
+          logs.push(createLog(`⚖️ [Phán Xét Công Bằng] không thể kích hoạt khi chỉ còn một người sống.`, "action"));
+        }
+        break;
+      }
+
+      case "s_death_mark": {
+        const target = updatedPlayers.find(p => p.id === targetPlayerId && !p.isDead);
+        if (target) {
+          target.hasDeathMark = true;
+          logs.push(createLog(`☠️ [Dấu Ấn Tử Thần] đã được đặt lên ${target.name}. Đòn tấn công tiếp theo vào họ được cộng 2 sát thương!`, "action"));
+        }
+        break;
+      }
+
+      case "s_blood_sacrifice": {
+        const target = updatedPlayers.find(p => p.id === targetPlayerId && !p.isDead);
+        if (target) {
+          source.currentHp = Math.max(0, source.currentHp - 2);
+          target.currentHp = Math.max(0, target.currentHp - 4);
+          logs.push(createLog(`🩸 [Hiến Tế Máu] ${source.name} mất 2 HP để gây 4 sát thương lên ${target.name}!`, "attack"));
+          [source, target].forEach(p => {
+            if (!p.isDead && p.currentHp <= 0) {
+              p.isDead = true;
+              p.alignmentRevealed = true;
+              logs.push(createLog(`☠️ ${p.name} tử trận trong nghi lễ hiến tế! Thân phận: [${p.character.name}] - Phe [${p.character.alignment}].`, "reveal"));
+            }
+          });
+        }
+        break;
+      }
+
       case "l_cleanse": {
         const wasPoisoned = !!source.mgangaPoisoned;
         source.mgangaPoisoned = false;
@@ -1951,7 +2018,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
                   if (otherPlayers.length > 0) {
                     targetId = otherPlayers[Math.floor(Math.random() * otherPlayers.length)].id;
                   }
-                } else if ("l_disenchant" === card.id || "l_firstaid" === card.id || "l_team_blessing" === card.id || "l_holy_eye" === card.id || "s_lifesteal" === card.id) {
+                } else if ("l_disenchant" === card.id || "l_firstaid" === card.id || "l_team_blessing" === card.id || "l_holy_eye" === card.id || "s_lifesteal" === card.id || "s_death_mark" === card.id || "s_blood_sacrifice" === card.id) {
                   const others = updatedState.players.filter(p => p.id !== botId && !p.isDead);
                   if (others.length > 0) {
                     targetId = others[Math.floor(Math.random() * others.length)].id;
@@ -2023,7 +2090,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
               updatedState = useGameCard(updatedState, card.id, botId);
             } else {
               let targetId: string | null = null;
-              if ("s_spider" === card.id || "s_doll" === card.id || "s_lifesteal" === card.id || card.id.startsWith("s_bat")) {
+              if ("s_spider" === card.id || "s_doll" === card.id || "s_lifesteal" === card.id || "s_death_mark" === card.id || "s_blood_sacrifice" === card.id || card.id.startsWith("s_bat")) {
                 const enemies = updatedState.players.filter(p => p.id !== botId && !p.isDead);
                 targetId = enemies.length > 0 ? enemies[Math.floor(Math.random() * enemies.length)].id : null;
               } else if ("s_banana" === card.id) {

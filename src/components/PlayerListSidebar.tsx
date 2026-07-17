@@ -56,10 +56,10 @@ export default function PlayerListSidebar({
                       <User className="w-3.5 h-3.5" style={{ color: p.color }} />
                     )}
                   </div>
-                  {(p.hasGuardianAngel || p.hasGregorShield) && !p.isDead && (
+                  {(p.hasGuardianAngel || p.hasGregorShield || p.hasHolyShield) && !p.isDead && (
                     <div className="absolute -top-1 -right-1 z-10">
                       <Shield className={`w-3 h-3 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)] ${
-                        p.hasGuardianAngel ? "text-amber-400" : "text-cyan-400"
+                        p.hasGuardianAngel ? "text-amber-400" : p.hasHolyShield ? "text-violet-300" : "text-cyan-400"
                       }`} />
                     </div>
                   )}
@@ -150,10 +150,10 @@ export default function PlayerListSidebar({
                     )}
                   </div>
 
-                  {(p.hasGuardianAngel || p.hasGregorShield) && !p.isDead && (
+                  {(p.hasGuardianAngel || p.hasGregorShield || p.hasHolyShield) && !p.isDead && (
                     <div className="absolute -top-1 -right-1 z-10">
                       <Shield className={`w-4 h-4 drop-shadow-[0_0_5px_rgba(251,191,36,0.6)] ${
-                        p.hasGuardianAngel ? "text-amber-400" : "text-cyan-400"
+                        p.hasGuardianAngel ? "text-amber-400" : p.hasHolyShield ? "text-violet-300" : "text-cyan-400"
                       }`} />
                     </div>
                   )}
