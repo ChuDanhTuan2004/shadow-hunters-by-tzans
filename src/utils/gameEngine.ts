@@ -1492,15 +1492,15 @@ export function activateCharacterAbility(
       logs.push(createLog(`💀 [Bất Tử] Volkath [${player.name}] lộ diện! Mỗi lượt hồi máu dựa trên số Shadow còn sống.`, "action"));
     }
   } else if (charName.startsWith("Ilumia")) {
-    // One-time: Reveal all Shadows + deal 3 damage to all Shadows
+    // One-time: Reveal all Shadows + deal 1 damage to all Shadows
     if (!player.hasUsedAbility && !player.abilityDisabled) {
       player.hasUsedAbility = true;
       const shadowCount = updatedPlayers.filter(p => p.character.alignment === Alignment.SHADOW && !p.isDead).length;
       updatedPlayers = updatedPlayers.map(p => {
         if (p.character.alignment === Alignment.SHADOW && !p.isDead) {
-          const newHp = Math.max(0, p.currentHp - 3);
+          const newHp = Math.max(0, p.currentHp - 1);
           const isDead = newHp <= 0;
-          logs.push(createLog(`☀️ [Thánh Quang] Ilumia [${player.name}] thiêu đốt ${p.name} (${p.character.name}) gây 3 sát thương!${isDead ? " 💀 ${p.name} tử trận!" : ""}`, "attack"));
+          logs.push(createLog(`☀️ [Thánh Quang] Ilumia [${player.name}] thiêu đốt ${p.name} (${p.character.name}) gây 1 sát thương!${isDead ? ` 💀 ${p.name} tử trận!` : ""}`, "attack"));
           return { ...p, alignmentRevealed: true, currentHp: newHp, isDead };
         }
         return p;

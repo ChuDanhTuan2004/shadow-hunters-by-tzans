@@ -55,7 +55,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Mganga (Độc dược sư)",
     alignment: Alignment.SHADOW,
-    hp: 8,
+    hp: 10,
     abilityName: "Độc dược",
     abilityDesc: "Đầu mỗi lượt: Gây 1 sát thương mỗi vòng chơi cho 1 người được chỉ định. Hiệu ứng này không kết thúc khi bạn tử trận.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
@@ -125,7 +125,7 @@ export const CHARACTERS: Character[] = [
     alignment: Alignment.HUNTER,
     hp: 12,
     abilityName: "Thánh quang",
-    abilityDesc: "Một lần: Lập tức làm lộ tất cả Shadow trên bản đồ và gây 3 sát thương cho tất cả Shadow.",
+    abilityDesc: "Một lần: Lập tức làm lộ tất cả Shadow trên bản đồ và gây 1 sát thương cho tất cả Shadow.",
     winCondition: "Giết hết tất cả Shadow."
   },
   {

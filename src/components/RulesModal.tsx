@@ -168,7 +168,7 @@ export default function RulesModal({ isOpen, onClose }: RulesModalProps) {
               </div>
               <div className="bg-neutral-800/40 p-3 rounded-lg border border-neutral-700/40">
                 <strong className="text-rose-300 block mb-1">Ilumia — Thánh Quang</strong>
-                Buộc toàn bộ Shadow lộ diện và gây 3 sát thương lên tất cả họ (chỉ dùng một lần).
+                Buộc toàn bộ Shadow lộ diện và gây 1 sát thương lên tất cả họ (chỉ dùng một lần).
               </div>
               <div className="bg-neutral-800/40 p-3 rounded-lg border border-neutral-700/40">
                 <strong className="text-rose-300 block mb-1">Gregor — Áo Giáp Thép</strong>
