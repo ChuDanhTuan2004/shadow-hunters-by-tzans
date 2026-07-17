@@ -39,7 +39,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Valkyrie (Nữ Chiến Binh)",
     alignment: Alignment.SHADOW,
-    hp: 14,
+    hp: 12,
     abilityName: "Đòn chém định mệnh",
     abilityDesc: "Khi tấn công dùng chỉ xúc xắc 4 mặt. Luôn tấn công thành công.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
@@ -47,7 +47,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Wight (Bóng Tối Cổ Đại)",
     alignment: Alignment.SHADOW,
-    hp: 14,
+    hp: 12,
     abilityName: "Lượt bổ sung",
     abilityDesc: "Một lần: Được chơi thêm số lượt bằng số người đã tử trận.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
@@ -63,7 +63,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Volkath (Ma vương)",
     alignment: Alignment.SHADOW,
-    hp: 10,
+    hp: 9,
     abilityName: "Bất tử",
     abilityDesc: "Đầu mỗi lượt: Hồi [(Số lượng người phe Shadow còn sống) + 2] máu mỗi lượt.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
@@ -71,7 +71,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Lilith (Nữ Vương Huyết Nguyệt)",
     alignment: Alignment.SHADOW,
-    hp: 12,
+    hp: 11,
     abilityName: "Huyết ước",
     abilityDesc: "Đầu mỗi lượt: Mất 1 HP để hồi 2 HP cho một Shadow khác.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
@@ -79,7 +79,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Noctis (Kẻ Nuốt Ánh Sáng)",
     alignment: Alignment.SHADOW,
-    hp: 13,
+    hp: 11,
     abilityName: "Nhật thực",
     abilityDesc: "Một lần: Vô hiệu hóa trang bị Trắng của tất cả người khác đến đầu lượt tiếp theo của Noctis.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
@@ -87,7 +87,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Morrigan (Phù Thủy Tai Ương)",
     alignment: Alignment.SHADOW,
-    hp: 10,
+    hp: 12,
     abilityName: "Lời nguyền lan truyền",
     abilityDesc: "Đầu mỗi lượt: Chuyển Độc Dược hoặc Dấu Ấn Tử Thần đang mang sang một người khác.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
@@ -95,7 +95,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Cerberus (Chó Săn Địa Ngục)",
     alignment: Alignment.SHADOW,
-    hp: 15,
+    hp: 12,
     abilityName: "Truy sát",
     abilityDesc: "Mục tiêu sống sót sau đòn đánh bị đánh dấu. Đòn tiếp theo của Cerberus vào họ gây thêm 2 sát thương.",
     winCondition: "Giết hết tất cả Hunter hoặc giết 3 Neutral."
@@ -113,7 +113,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Franklin (Cơ giáp Sấm Sét)",
     alignment: Alignment.HUNTER,
-    hp: 13,
+    hp: 12,
     abilityName: "Phóng sét định điểm",
     abilityDesc: "Một lần: Chọn một người và gây 4 sát thương.",
     winCondition: "Giết hết tất cả Shadow."
@@ -147,7 +147,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Gregor (Hiệp Sĩ Thép)",
     alignment: Alignment.HUNTER,
-    hp: 16,
+    hp: 14,
     abilityName: "Áo giáp thép",
     abilityDesc: "Một lần: Sau khi kết thúc lượt, không nhận sát thương đến đầu lượt sau.",
     winCondition: "Giết hết tất cả Shadow."
@@ -155,7 +155,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Ilumia (Nữ chúa thánh quang)",
     alignment: Alignment.HUNTER,
-    hp: 12,
+    hp: 11,
     abilityName: "Thánh quang",
     abilityDesc: "Một lần: Lập tức làm lộ tất cả Shadow trên bản đồ và gây 1 sát thương cho tất cả Shadow.",
     winCondition: "Giết hết tất cả Shadow."
@@ -171,7 +171,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Aria (Nữ Tu Ánh Bình Minh)",
     alignment: Alignment.HUNTER,
-    hp: 11,
+    hp: 12,
     abilityName: "Bình minh thanh tẩy",
     abilityDesc: "Đầu mỗi lượt: Xóa Độc Dược và Dấu Ấn Tử Thần khỏi một người còn sống.",
     winCondition: "Giết hết tất cả Shadow."
@@ -179,7 +179,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Roland (Kỵ Sĩ Phán Quyết)",
     alignment: Alignment.HUNTER,
-    hp: 14,
+    hp: 13,
     abilityName: "Quyết đấu",
     abilityDesc: "Một lần: Chọn một người trong tầm đánh. Đòn tấn công của Roland vào họ trong lượt này được cộng 2 sát thương và không thể đổi mục tiêu.",
     winCondition: "Giết hết tất cả Shadow."
@@ -221,7 +221,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Charles (Kiếm Sĩ Cuồng Nộ)",
     alignment: Alignment.NEUTRAL,
-    hp: 16,
+    hp: 14,
     abilityName: "Chém đôi cuồng nộ",
     abilityDesc: "Sau khi tấn công, bạn có thể tự nhận 2 sát thương để tấn công lại cùng mục tiêu đó.",
     winCondition: "Đòn tấn công của bạn tiêu diệt người chơi thứ 3 trở đi."
@@ -261,7 +261,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "David (Kẻ Thu Thập Thánh Vật)",
     alignment: Alignment.NEUTRAL,
-    hp: 13,
+    hp: 11,
     abilityName: "Thu thập thánh vật",
     abilityDesc: "Đầu mỗi lượt: Cướp 1 trang bị từ 1 người chơi còn sống.",
     winCondition: "Sở hữu ít nhất 3 trong số các trang bị sau: Cài Áo May Mắn, Thương Longinus, Áo Choàng Thánh, Chuỗi Hạt Bạc."
@@ -277,7 +277,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Cain (Kẻ Báo Thù)",
     alignment: Alignment.NEUTRAL,
-    hp: 13,
+    hp: 12,
     abilityName: "Mối thù máu",
     abilityDesc: "Người đầu tiên gây sát thương cho Cain bằng đòn tấn công trở thành Kẻ Thù. Cain gây thêm 1 sát thương khi tấn công họ.",
     winCondition: "Còn sống và Kẻ Thù đã chết khi trận kết thúc."
@@ -285,7 +285,7 @@ export const CHARACTERS: Character[] = [
   {
     name: "Iris (Nhà Sưu Tầm Bí Mật)",
     alignment: Alignment.NEUTRAL,
-    hp: 9,
+    hp: 10,
     abilityName: "Đánh cắp bí mật",
     abilityDesc: "Đầu mỗi lượt: Bí mật xem thân phận của một người cùng khu vực. Sau khi xem 3 người khác nhau, Iris buộc phải lộ diện.",
     winCondition: "Đã xem ít nhất 3 thân phận khác nhau và còn sống khi trận kết thúc."
