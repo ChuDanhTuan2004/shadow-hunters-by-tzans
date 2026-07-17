@@ -168,6 +168,11 @@ export function useGameSession() {
 
         setActiveGame(updatedState);
 
+        if (("waiting_room" === view || "character_select" === view) && updatedState.phase === "character_select") {
+          setView("character_select");
+          return;
+        }
+
         // Chuyển trực tiếp sang màn hình chơi từ phòng chờ hoặc màn hình chọn nhân vật khi game bắt đầu
         if (("waiting_room" === view || "character_select" === view) && updatedState.phase !== "lobby" && updatedState.phase !== "character_select") {
           setView("playing");

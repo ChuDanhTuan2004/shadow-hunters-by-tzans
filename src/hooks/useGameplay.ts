@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Alignment, CardType, GameState, Player, Character } from "../types";
 import { LOCATIONS, areLocationsInSameArea } from "../data/locations";
 import { CHARACTERS, DECK_HERMIT, DECK_LIGHT, DECK_SHADOW, getCardById, GameCard } from "../data/cards";
-import { updateRoomState } from "../firebase";
+import { chooseMultiplayerCharacter, updateRoomState } from "../firebase";
 import {
   initGame,
   assignCharactersForPlayers,
@@ -202,6 +202,16 @@ export function useGameplay({
     if (null === activeGame || null === roomId) return;
     if (3 > activeGame.players.length) return;
 
+    const selectionState: GameState = {
+      ...activeGame,
+      players: generateCharacterOptions(activeGame),
+      phase: "character_select"
+    };
+    await updateRoomState(roomId, selectionState);
+    setActiveGame(selectionState);
+    setView("character_select");
+    return;
+
     const count = activeGame.players.length;
     const shadows = CHARACTERS.filter(c => c.alignment === Alignment.SHADOW);
     const hunters = CHARACTERS.filter(c => c.alignment === Alignment.HUNTER);
@@ -360,23 +370,9 @@ export function useGameplay({
   // Hàm xác nhận chọn nhân vật
   const handleConfirmCharacter = async (characterName: string) => {
     if (!activeGame || !roomId) return;
-
-    const nextState = {
-      ...activeGame,
-      players: activeGame.players.map(p =>
-        p.id === playerId
-          ? { ...p, characterChoice: characterName }
-          : p
-      ),
-    };
-
-    // Kiểm tra nếu tất cả đã chọn (kể cả bot)
-    const allChosen = nextState.players.every(p => p.characterChoice !== null && p.characterChoice !== undefined);
-    if (allChosen) {
-      await finalizeGameStart(nextState);
-    } else {
-      await updateRoomState(roomId, nextState);
-    }
+    const player = activeGame.players.find(p => p.id === playerId);
+    if (!player?.characterOptions?.includes(characterName) || player.characterChoice != null) return;
+    await chooseMultiplayerCharacter(roomId, playerId, characterName);
   };
 
   // Bot tự động chọn nhân vật
@@ -384,26 +380,18 @@ export function useGameplay({
     if (gameMode === "multiplayer" && roomId && activeGame && "character_select" === activeGame.phase) {
       const isHost = (activeGame.hostId || activeGame.players[0]?.id) === playerId;
       const botsUnchosen = activeGame.players.filter(p => p.isBot && (p.characterChoice === null || p.characterChoice === undefined));
-      if (isHost && botsUnchosen.length > 0) {
+      if (isHost) {
         const timer = setTimeout(async () => {
-          let nextState = { ...activeGame };
           for (const bot of botsUnchosen) {
             const options = bot.characterOptions || [];
             const pick = options[Math.floor(Math.random() * options.length)] || null;
-            nextState = {
-              ...nextState,
-              players: nextState.players.map(p =>
-                p.id === bot.id ? { ...p, characterChoice: pick } : p
-              ),
-            };
+            if (pick) await chooseMultiplayerCharacter(roomId, bot.id, pick);
           }
-          const allChosen = nextState.players.every(p => p.characterChoice !== null && p.characterChoice !== undefined);
+          const allChosen = botsUnchosen.length === 0 && activeGame.players.every(p => p.characterChoice != null);
           if (allChosen) {
-            await finalizeGameStart(nextState);
-          } else {
-            await updateRoomState(roomId, nextState);
+            await finalizeGameStart(activeGame);
           }
-        }, 1500);
+        }, botsUnchosen.length > 0 ? 1500 : 200);
         return () => clearTimeout(timer);
       }
     }

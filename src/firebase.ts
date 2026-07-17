@@ -11,7 +11,8 @@ import {
   where, 
   getDocs,
   limit,
-  writeBatch
+  writeBatch,
+  runTransaction
 } from "firebase/firestore";
 import firebaseConfigJson from "../firebase-applet-config.json";
 
@@ -180,6 +181,29 @@ export function listenToRoom(roomId: string, callback: (data: any) => void) {
 export async function updateRoomState(roomId: string, newState: any) {
   const roomRef = doc(db, "rooms", roomId);
   await setDoc(roomRef, newState, { merge: true });
+}
+
+/** Ghi lựa chọn nhân vật của một người chơi mà không ghi đè lựa chọn đồng thời của người khác. */
+export async function chooseMultiplayerCharacter(roomId: string, playerId: string, characterName: string) {
+  const roomRef = doc(db, "rooms", roomId);
+  await runTransaction(db, async transaction => {
+    const snapshot = await transaction.get(roomRef);
+    if (!snapshot.exists()) throw new Error("Phòng game không tồn tại!");
+
+    const room = snapshot.data();
+    if (room.phase !== "character_select") throw new Error("Giai đoạn chọn nhân vật đã kết thúc!");
+
+    const player = room.players.find((p: any) => p.id === playerId);
+    if (!player) throw new Error("Người chơi không còn trong phòng!");
+    if (!player.characterOptions?.includes(characterName)) throw new Error("Nhân vật không thuộc hai lựa chọn của bạn!");
+    if (player.characterChoice != null) return;
+
+    transaction.update(roomRef, {
+      players: room.players.map((p: any) =>
+        p.id === playerId ? { ...p, characterChoice: characterName } : p
+      )
+    });
+  });
 }
 
 /**
