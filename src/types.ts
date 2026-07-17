@@ -75,7 +75,7 @@ export interface Player {
   cainEnemyId?: string | null;
   irisViewedPlayerIds?: string[];
   rookGambleDamage?: number | null;
-  characterOptions?: string[]; // 2 nhân vật được rút để chọn (multiplayer)
+  characterOptions?: string[]; // 3 nhân vật được rút để chọn (multiplayer)
   characterChoice?: string | null; // null = chưa chọn, string = đã chọn
 }
 

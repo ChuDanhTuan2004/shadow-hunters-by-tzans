@@ -120,7 +120,7 @@ export function useGameplay({
     setView("playing");
   };
 
-  // Helper: gán 2 lựa chọn nhân vật cho mỗi player, đảm bảo không trùng
+  // Helper: gán 3 lựa chọn nhân vật cho mỗi player, đảm bảo không trùng
   const generateCharacterOptions = (state: GameState): Player[] => {
     const count = state.players.length;
     const shadows = CHARACTERS.filter(c => c.alignment === Alignment.SHADOW);
@@ -166,11 +166,11 @@ export function useGameplay({
 
       let options: string[] = [];
       if (assignedAlignment === Alignment.SHADOW) {
-        options = [shadowPool.pop()!, shadowPool.pop()!];
+        options = [shadowPool.pop()!, shadowPool.pop()!, shadowPool.pop()!];
       } else if (assignedAlignment === Alignment.HUNTER) {
-        options = [hunterPool.pop()!, hunterPool.pop()!];
+        options = [hunterPool.pop()!, hunterPool.pop()!, hunterPool.pop()!];
       } else {
-        options = [neutralPool.pop()!, neutralPool.pop()!];
+        options = [neutralPool.pop()!, neutralPool.pop()!, neutralPool.pop()!];
       }
 
       playersWithOptions.push({

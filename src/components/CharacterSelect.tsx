@@ -67,18 +67,18 @@ export default function CharacterSelect({
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-neutral-950/70" />
       </div>
 
-      <div className="max-w-2xl w-full mx-auto bg-[#0a0c16]/85 backdrop-blur-xl border border-[#4437ac]/40 rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(68,55,172,0.3)] p-6 sm:p-8 space-y-6 animate-fadeIn relative z-10">
+      <div className="max-w-5xl w-full mx-auto bg-[#0a0c16]/85 backdrop-blur-xl border border-[#4437ac]/40 rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(68,55,172,0.3)] p-6 sm:p-8 space-y-6 animate-fadeIn relative z-10">
         <div className="text-center space-y-2.5">
           <span className="text-[10px] bg-[#4437ac]/20 text-[#7ba2be] border border-[#4437ac]/40 px-3 py-1 rounded-full font-bold uppercase tracking-widest inline-block">
             Chọn Nhân Vật
           </span>
           <h2 className="text-2xl font-extrabold tracking-widest text-white">
-            {hasChosen ? "Đã Chọn Nhân Vật" : "Hãy Chọn 1 Trong 2 Nhân Vật"}
+            {hasChosen ? "Đã Chọn Nhân Vật" : "Hãy Chọn 1 Trong 3 Nhân Vật"}
           </h2>
           <p className="text-xs text-neutral-300 max-w-md mx-auto leading-relaxed">
             {hasChosen
               ? `Đang chờ người chơi khác... (${chosenCount}/${totalPlayers})`
-              : "Mỗi người chơi sẽ được rút 2 nhân vật ngẫu nhiên và chọn 1 để nhập cuộc."}
+              : "Mỗi người chơi sẽ được rút 3 nhân vật ngẫu nhiên cùng phe và chọn 1 để nhập cuộc."}
           </p>
         </div>
 
@@ -115,9 +115,9 @@ export default function CharacterSelect({
           </div>
         </div>
 
-        {/* 2 lựa chọn nhân vật */}
+        {/* 3 lựa chọn nhân vật */}
         {!hasChosen && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {options.map((charName, idx) => {
               const char = getCharacter(charName);
               if (!char) return null;
