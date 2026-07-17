@@ -20,6 +20,7 @@ export default function AbilityTargetDialog({
 }: AbilityTargetDialogProps) {
   const [selectedTargetId, setSelectedTargetId] = useState<string>("");
   const [guessedAlignment, setGuessedAlignment] = useState<Alignment | "">("");
+  const [rookParity, setRookParity] = useState<"ODD" | "EVEN" | "">("");
 
   if (!isOpen) {
     return null;
@@ -59,9 +60,16 @@ export default function AbilityTargetDialog({
     targetablePlayers = activeGame.players.filter(p => !p.isDead && p.id !== playerId && !areLocationsInSameArea(currentPlayer.locationId, p.locationId));
   } else if (charName.startsWith("Ezekiel")) {
     targetablePlayers = activeGame.players.filter(p => !p.isDead && p.id !== playerId && !p.alignmentRevealed);
+  } else if (charName.startsWith("Iris")) {
+    targetablePlayers = activeGame.players.filter(p => !p.isDead && p.id !== playerId && areLocationsInSameArea(currentPlayer.locationId, p.locationId));
   }
 
   const handleConfirm = () => {
+    if (charName.startsWith("Rook") && rookParity) {
+      onConfirm(rookParity);
+      setRookParity("");
+      return;
+    }
     if (selectedTargetId && (!charName.startsWith("Ezekiel") || guessedAlignment)) {
       onConfirm(charName.startsWith("Ezekiel") ? `${selectedTargetId}:${guessedAlignment}` : selectedTargetId);
       setSelectedTargetId("");
@@ -96,7 +104,7 @@ export default function AbilityTargetDialog({
         </div>
 
         <div className="space-y-4 pt-2 text-left">
-          <div className="space-y-2">
+          {!charName.startsWith("Rook") && <div className="space-y-2">
             <label className="block text-[11px] font-semibold text-neutral-400">
               Chọn 1 đối tượng để tác dụng hiệu lực:
             </label>
@@ -116,7 +124,18 @@ export default function AbilityTargetDialog({
                 );
               })}
             </select>
-          </div>
+          </div>}
+
+          {charName.startsWith("Rook") && (
+            <div className="space-y-2">
+              <label className="block text-[11px] font-semibold text-neutral-400">Dự đoán kết quả xúc xắc D6:</label>
+              <select value={rookParity} onChange={e => setRookParity(e.target.value as "ODD" | "EVEN")} className="w-full px-3 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-xs text-white">
+                <option value="">-- Chọn Chẵn hoặc Lẻ --</option>
+                <option value="EVEN">Chẵn</option>
+                <option value="ODD">Lẻ</option>
+              </select>
+            </div>
+          )}
 
           {charName.startsWith("Ezekiel") && (
             <div className="space-y-2">
@@ -139,7 +158,7 @@ export default function AbilityTargetDialog({
             </button>
             <button
               onClick={handleConfirm}
-              disabled={"" === selectedTargetId || (charName.startsWith("Ezekiel") && !guessedAlignment)}
+              disabled={charName.startsWith("Rook") ? !rookParity : "" === selectedTargetId || (charName.startsWith("Ezekiel") && !guessedAlignment)}
               className="w-full py-2 bg-[#4437AC] hover:bg-[#4437AC]/90 disabled:opacity-30 rounded-xl text-xs font-bold text-white transition-all shadow cursor-pointer text-center"
             >
               Xác Nhận

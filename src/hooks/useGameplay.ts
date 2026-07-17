@@ -942,7 +942,7 @@ export function useGameplay({
     const currentPlayer = activeGame.players[getTurnIndex()];
     const charName = currentPlayer.character.name;
 
-    const needsTarget = charName.startsWith("Fuka") || charName.startsWith("Franklin") || charName.startsWith("Ellen") || charName.startsWith("George") || charName.startsWith("Mganga") || charName.startsWith("Helen") || charName.startsWith("Lilith") || charName.startsWith("Morrigan") || charName.startsWith("Aria") || charName.startsWith("Roland") || charName.startsWith("Selene") || charName.startsWith("Ezekiel");
+    const needsTarget = charName.startsWith("Fuka") || charName.startsWith("Franklin") || charName.startsWith("Ellen") || charName.startsWith("George") || charName.startsWith("Mganga") || charName.startsWith("Helen") || charName.startsWith("Lilith") || charName.startsWith("Morrigan") || charName.startsWith("Aria") || charName.startsWith("Roland") || charName.startsWith("Selene") || charName.startsWith("Ezekiel") || charName.startsWith("Iris") || charName.startsWith("Rook");
     
     if (needsTarget && !targetPlayerId && !currentPlayer.hasUsedAbility && !currentPlayer.abilityDisabled) {
       setShowAbilityTargetDialog(true);
@@ -1291,7 +1291,7 @@ export function useGameplay({
       nextState.players = nextState.players.map(p => p.lightEquipmentDisabled ? { ...p, lightEquipmentDisabled: false } : p);
     }
 
-    if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen") || nextPlayer.character.name.startsWith("Charles") || nextPlayer.character.name.startsWith("Lilith") || nextPlayer.character.name.startsWith("Morrigan") || nextPlayer.character.name.startsWith("Aria") || nextPlayer.character.name.startsWith("Selene")) {
+    if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen") || nextPlayer.character.name.startsWith("Charles") || nextPlayer.character.name.startsWith("Lilith") || nextPlayer.character.name.startsWith("Morrigan") || nextPlayer.character.name.startsWith("Aria") || nextPlayer.character.name.startsWith("Selene") || nextPlayer.character.name.startsWith("Ophelia") || nextPlayer.character.name.startsWith("Iris")) {
       nextState.players = nextState.players.map(p =>
         p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
       );

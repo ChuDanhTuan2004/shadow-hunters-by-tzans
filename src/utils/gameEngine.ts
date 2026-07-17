@@ -419,6 +419,16 @@ export function checkVictory(players: Player[]): VictoryResult | null {
     } else if (charName.startsWith("David")) {
       const count = p.equipments.filter(eq => ["l_talisman", "l_spear", "l_holyrobe", "l_rosary"].includes(eq)).length;
       neutralWon = 3 <= count;
+    } else if (charName.startsWith("Ophelia")) {
+      const aliveHp = alivePlayers.map(pl => pl.currentHp);
+      neutralWon = !p.isDead && aliveHp.length > 0 && Math.max(...aliveHp) - Math.min(...aliveHp) <= 3;
+    } else if (charName.startsWith("Cain")) {
+      const enemy = players.find(pl => pl.id === p.cainEnemyId);
+      neutralWon = !p.isDead && !!enemy?.isDead;
+    } else if (charName.startsWith("Iris")) {
+      neutralWon = !p.isDead && (p.irisViewedPlayerIds?.length || 0) >= 3;
+    } else if (charName.startsWith("Rook")) {
+      neutralWon = !p.isDead && !!p.hasUsedAbility && alivePlayers.length === 3;
     }
 
     if (neutralWon) {
@@ -550,8 +560,14 @@ export function performAttack(
 
   const attacker = updatedPlayers.find(p => p.id === attackerId)!;
   const target = updatedPlayers.find(p => p.id === targetId)!;
+  let isRookGambleAttack = false;
 
   if (attacker.isDead || target.isDead) return gameState;
+  if (attacker.character.name.startsWith("Rook") && attacker.rookGambleDamage != null && forcedDamage === null) {
+    forcedDamage = attacker.rookGambleDamage;
+    attacker.rookGambleDamage = null;
+    isRookGambleAttack = true;
+  }
   if (attacker.character.name.startsWith("Roland") && attacker.rolandDuelTargetId && attacker.rolandDuelTargetId !== targetId) return gameState;
 
   let damageRoll = 0;
@@ -631,8 +647,12 @@ export function performAttack(
     if (!attacker.lightEquipmentDisabled && attacker.equipments.includes("l_spear") && attacker.character.alignment === Alignment.HUNTER) { // Thương Longinus (+2 sát thương cho Hunter)
       damageBonus += 2;
     }
+    if (attacker.character.name.startsWith("Cain") && !attacker.abilityDisabled && attacker.cainEnemyId === currTarget.id) {
+      damageBonus += 1;
+      logs.push(createLog(`🩸 [Mối Thù Máu] Cain [${attacker.name}] gây thêm 1 sát thương lên Kẻ Thù ${currTarget.name}!`, "action"));
+    }
 
-    let finalDamage = damageRoll + damageBonus;
+    let finalDamage = isRookGambleAttack ? damageRoll : damageRoll + damageBonus;
 
     if (attacker.alignmentRevealed && attacker.character.name.startsWith("Roland") && !attacker.abilityDisabled && attacker.rolandDuelTargetId === currTarget.id && finalDamage > 0) {
       finalDamage += 2;
@@ -672,6 +692,10 @@ export function performAttack(
         `💥 Gây ${finalDamage} sát thương lên ${currTarget.name}!`,
         "attack"
       ));
+      if (currTarget.character.name.startsWith("Cain") && !currTarget.cainEnemyId && attacker.id !== currTarget.id) {
+        currTarget.cainEnemyId = attacker.id;
+        logs.push(createLog(`🩸 [Mối Thù Máu] Cain [${currTarget.name}] ghi nhớ ${attacker.name} là Kẻ Thù!`, "action"));
+      }
     }
 
     // Kích hoạt Spear of Longinus tự lật thân phận nếu gây sát thương thành công
@@ -1510,6 +1534,7 @@ export function activateCharacterAbility(
   let updatedPlayers = gameState.players.map(p => ({ ...p, character: { ...p.character } }));
   const player = updatedPlayers.find(p => p.id === playerId)!;
   const logs: GameLog[] = [];
+  let hermitTargetIdentityShown = gameState.hermitTargetIdentityShown ?? null;
 
   if (player.isDead) return gameState;
 
@@ -1517,8 +1542,8 @@ export function activateCharacterAbility(
   const charName = player.character.name;
 
   // Tiết lộ thân phận nếu chưa lộ
-  const isUnresolvedEzekielGuess = charName.startsWith("Ezekiel") && !!targetPlayerId && !player.hasUsedAbility;
-  if (!player.alignmentRevealed && !isUnresolvedEzekielGuess) {
+  const keepsIdentitySecret = (charName.startsWith("Ezekiel") && !!targetPlayerId && !player.hasUsedAbility) || charName.startsWith("Iris");
+  if (!player.alignmentRevealed && !keepsIdentitySecret) {
     player.alignmentRevealed = true;
     logs.push(createLog(`📣 TIẾT LỘ THÂN PHẬN! ${player.name} tiết lộ vai diễn là [${player.character.name}] thuộc phe [${player.character.alignment}]!`, "reveal"));
   }
@@ -1805,6 +1830,58 @@ export function activateCharacterAbility(
         }
       }
     }
+  } else if (charName.startsWith("Ophelia")) {
+    if (!player.hasUsedAbility && !player.abilityDisabled) {
+      const alive = updatedPlayers.filter(p => !p.isDead);
+      if (alive.length >= 2) {
+        const maxHp = Math.max(...alive.map(p => p.currentHp));
+        const donor = alive.filter(p => p.currentHp === maxHp)[Math.floor(Math.random() * alive.filter(p => p.currentHp === maxHp).length)];
+        const receivers = alive.filter(p => p.id !== donor.id);
+        const minHp = Math.min(...receivers.map(p => p.currentHp));
+        const receiver = receivers.filter(p => p.currentHp === minHp)[Math.floor(Math.random() * receivers.filter(p => p.currentHp === minHp).length)];
+        player.hasUsedAbility = true;
+        if (donor.currentHp > 1 && receiver.currentHp < receiver.character.hp) {
+          donor.currentHp -= 1;
+          receiver.currentHp += 1;
+          logs.push(createLog(`⚖️ [Cán Cân Sinh Mệnh] Ophelia chuyển 1 HP từ ${donor.name} sang ${receiver.name}.`, "action"));
+        } else {
+          logs.push(createLog(`⚖️ [Cán Cân Sinh Mệnh] không thể chuyển HP trong trạng thái hiện tại.`, "action"));
+        }
+      }
+    }
+  } else if (charName.startsWith("Iris")) {
+    if (!player.hasUsedAbility && !player.abilityDisabled && targetPlayerId) {
+      const target = updatedPlayers.find(p => p.id === targetPlayerId && !p.isDead && p.id !== player.id && areLocationsInSameArea(player.locationId, p.locationId));
+      if (target) {
+        player.irisViewedPlayerIds = Array.from(new Set([...(player.irisViewedPlayerIds || []), target.id]));
+        player.hasUsedAbility = true;
+        hermitTargetIdentityShown = { viewerId: player.id, targetId: target.id, characterName: target.character.name, alignment: target.character.alignment };
+        logs.push(createLog(`🔮 [Đánh Cắp Bí Mật] Iris [${player.name}] bí mật xem thân phận của ${target.name} (${player.irisViewedPlayerIds.length}/3).`, "action"));
+        if (player.irisViewedPlayerIds.length >= 3 && !player.alignmentRevealed) {
+          player.alignmentRevealed = true;
+          logs.push(createLog(`📣 Iris [${player.name}] đã thu thập đủ 3 bí mật và buộc phải lộ diện!`, "reveal"));
+        }
+      }
+    }
+  } else if (charName.startsWith("Rook")) {
+    if (!player.hasUsedAbility && !player.abilityDisabled && (targetPlayerId === "ODD" || targetPlayerId === "EVEN")) {
+      const roll = Math.floor(Math.random() * 6) + 1;
+      const correct = (roll % 2 === 0) === (targetPlayerId === "EVEN");
+      player.hasUsedAbility = true;
+      if (correct) {
+        player.rookGambleDamage = roll;
+        logs.push(createLog(`🎲 [Tất Tay] Rook đoán ${targetPlayerId === "EVEN" ? "Chẵn" : "Lẻ"}, D6 = ${roll}: chính xác! Đòn kế tiếp gây cố định ${roll} sát thương.`, "action"));
+      } else {
+        const recoil = Math.ceil(roll / 2);
+        player.currentHp = Math.max(0, player.currentHp - recoil);
+        logs.push(createLog(`🎲 [Tất Tay] Rook đoán sai với D6 = ${roll}, tự nhận ${recoil} sát thương!`, "attack"));
+        if (player.currentHp <= 0) {
+          player.isDead = true;
+          player.alignmentRevealed = true;
+          logs.push(createLog(`☠️ Rook [${player.name}] tử trận vì canh bạc điên loạn!`, "reveal"));
+        }
+      }
+    }
   } else if (charName.startsWith("Volkath")) {
     // Passive: heal at start of turn (handled in endTurnTransition)
     if (!wasAlreadyRevealed) {
@@ -1889,7 +1966,8 @@ export function activateCharacterAbility(
     logs: [...logs, ...gameState.logs],
     phase: newPhase,
     winnerAlignment,
-    winnerPlayerIds
+    winnerPlayerIds,
+    hermitTargetIdentityShown
   };
 }
 
@@ -2394,6 +2472,14 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
         updatedState = activateCharacterAbility(updatedState, botId, `${unknown.id}:${guess}`);
       }
     }
+    if (botChar.startsWith("Ophelia") && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
+      updatedState = activateCharacterAbility(updatedState, botId);
+    }
+    if (botChar.startsWith("Iris") && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
+      const viewed = new Set(currentBot.irisViewedPlayerIds || []);
+      const nearby = updatedState.players.find(p => p.id !== botId && !p.isDead && !viewed.has(p.id) && areLocationsInSameArea(currentBot.locationId, p.locationId));
+      if (nearby) updatedState = activateCharacterAbility(updatedState, botId, nearby.id);
+    }
 
     updatedState.phase = "attack";
   }
@@ -2435,6 +2521,9 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
 
       if (botChar.startsWith("Roland") && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
         updatedState = activateCharacterAbility(updatedState, botId, bestTarget.id);
+      }
+      if (botChar.startsWith("Rook") && !currentBot.hasUsedAbility && !currentBot.abilityDisabled) {
+        updatedState = activateCharacterAbility(updatedState, botId, Math.random() < 0.5 ? "ODD" : "EVEN");
       }
 
       // Thực hiện tấn công
@@ -2610,7 +2699,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
         }
 
         // Các kỹ năng dùng một lần mỗi lượt được reset ở đầu lượt mới.
-        if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen") || nextPlayer.character.name.startsWith("Charles") || nextPlayer.character.name.startsWith("Lilith") || nextPlayer.character.name.startsWith("Morrigan") || nextPlayer.character.name.startsWith("Aria") || nextPlayer.character.name.startsWith("Selene")) {
+        if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen") || nextPlayer.character.name.startsWith("Charles") || nextPlayer.character.name.startsWith("Lilith") || nextPlayer.character.name.startsWith("Morrigan") || nextPlayer.character.name.startsWith("Aria") || nextPlayer.character.name.startsWith("Selene") || nextPlayer.character.name.startsWith("Ophelia") || nextPlayer.character.name.startsWith("Iris")) {
           updatedState.players = updatedState.players.map(p =>
             p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
           );

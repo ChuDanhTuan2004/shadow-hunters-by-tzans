@@ -365,6 +365,9 @@ export default function ActionControls({
               currentTurnPlayer.character.name.startsWith("Ilumia") ||
               currentTurnPlayer.character.name.startsWith("Noctis") ||
               currentTurnPlayer.character.name.startsWith("Ezekiel") ||
+              (currentTurnPlayer.character.name.startsWith("Ophelia") && "roll" === activeGame.phase) ||
+              (currentTurnPlayer.character.name.startsWith("Iris") && "roll" === activeGame.phase) ||
+              (currentTurnPlayer.character.name.startsWith("Rook") && "attack" === activeGame.phase) ||
               (currentTurnPlayer.character.name.startsWith("George") && "roll" === activeGame.phase) ||
               (currentTurnPlayer.character.name.startsWith("Mganga") && "roll" === activeGame.phase) ||
               (currentTurnPlayer.character.name.startsWith("Helen") && "roll" === activeGame.phase) ||

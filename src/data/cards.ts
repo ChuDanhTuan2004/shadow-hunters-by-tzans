@@ -265,6 +265,38 @@ export const CHARACTERS: Character[] = [
     abilityName: "Thu thập thánh vật",
     abilityDesc: "Đầu mỗi lượt: Cướp 1 trang bị từ 1 người chơi còn sống.",
     winCondition: "Sở hữu ít nhất 3 trong số các trang bị sau: Cài Áo May Mắn, Thương Longinus, Áo Choàng Thánh, Chuỗi Hạt Bạc."
+  },
+  {
+    name: "Ophelia (Người Giữ Cân Bằng)",
+    alignment: Alignment.NEUTRAL,
+    hp: 11,
+    abilityName: "Cán cân sinh mệnh",
+    abilityDesc: "Đầu mỗi lượt: Chuyển 1 HP từ người có HP cao nhất sang người có HP thấp nhất.",
+    winCondition: "Còn sống khi trận kết thúc và chênh lệch HP giữa người sống cao nhất với thấp nhất không quá 3."
+  },
+  {
+    name: "Cain (Kẻ Báo Thù)",
+    alignment: Alignment.NEUTRAL,
+    hp: 13,
+    abilityName: "Mối thù máu",
+    abilityDesc: "Người đầu tiên gây sát thương cho Cain bằng đòn tấn công trở thành Kẻ Thù. Cain gây thêm 1 sát thương khi tấn công họ.",
+    winCondition: "Còn sống và Kẻ Thù đã chết khi trận kết thúc."
+  },
+  {
+    name: "Iris (Nhà Sưu Tầm Bí Mật)",
+    alignment: Alignment.NEUTRAL,
+    hp: 9,
+    abilityName: "Đánh cắp bí mật",
+    abilityDesc: "Đầu mỗi lượt: Bí mật xem thân phận của một người cùng khu vực. Sau khi xem 3 người khác nhau, Iris buộc phải lộ diện.",
+    winCondition: "Đã xem ít nhất 3 thân phận khác nhau và còn sống khi trận kết thúc."
+  },
+  {
+    name: "Rook (Con Bạc Điên Loạn)",
+    alignment: Alignment.NEUTRAL,
+    hp: 12,
+    abilityName: "Tất tay",
+    abilityDesc: "Một lần: Trước khi tấn công, chọn Chẵn hoặc Lẻ rồi tung D6. Đúng: đòn kế tiếp gây sát thương cố định bằng D6. Sai: tự nhận nửa D6, làm tròn lên.",
+    winCondition: "Đã dùng Tất Tay, còn sống và trận đấu kết thúc với đúng 3 người sống."
   }
 ];
 
