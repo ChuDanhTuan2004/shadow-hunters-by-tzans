@@ -75,6 +75,7 @@ export default function App() {
     handleEnterRoom,
     handleAddBotInLobby,
     handleRemovePlayerInLobby,
+    handleRenamePlayerInLobby,
     notification,
     clearNotification,
     markLeavingVoluntarily
@@ -217,6 +218,7 @@ export default function App() {
             playerId={playerId}
             playerName={playerName}
             onRemovePlayer={handleRemovePlayerInLobby}
+            onRenamePlayer={handleRenamePlayerInLobby}
             onAddBot={handleAddBotInLobby}
             onLeave={handleLeaveGame}
             onStartGame={handleStartMultiplayerGame}

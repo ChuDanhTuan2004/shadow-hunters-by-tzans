@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Alignment, GameState } from "../types";
-import { listenToRoom, updateRoomState } from "../firebase";
+import { listenToRoom, renameLobbyPlayer, updateRoomState } from "../firebase";
 
 export function useGameSession() {
   const [playerId] = useState(() => {
@@ -243,6 +243,11 @@ export function useGameSession() {
     await updateRoomState(roomId, nextState);
   };
 
+  const handleRenamePlayerInLobby = async (targetId: string, newName: string) => {
+    if (!roomId) return;
+    await renameLobbyPlayer(roomId, playerId, targetId, newName);
+  };
+
   return {
     playerId,
     playerName,
@@ -260,6 +265,7 @@ export function useGameSession() {
     handleEnterRoom,
     handleAddBotInLobby,
     handleRemovePlayerInLobby,
+    handleRenamePlayerInLobby,
     notification,
     clearNotification,
     markLeavingVoluntarily

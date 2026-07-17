@@ -206,6 +206,32 @@ export async function chooseMultiplayerCharacter(roomId: string, playerId: strin
   });
 }
 
+/** Đổi tên một người chơi khác trong phòng chờ; quyền Host được kiểm tra trong transaction. */
+export async function renameLobbyPlayer(roomId: string, requesterId: string, targetId: string, requestedName: string) {
+  const newName = requestedName.trim().slice(0, 50);
+  if (!newName) throw new Error("Tên người chơi không được để trống!");
+
+  const roomRef = doc(db, "rooms", roomId);
+  await runTransaction(db, async transaction => {
+    const snapshot = await transaction.get(roomRef);
+    if (!snapshot.exists()) throw new Error("Phòng game không tồn tại!");
+
+    const room = snapshot.data();
+    const hostId = room.hostId || room.players[0]?.id;
+    if (requesterId !== hostId) throw new Error("Chỉ chủ phòng được đổi tên người chơi!");
+    if (requesterId === targetId) throw new Error("Chủ phòng không thể đổi tên mình tại đây!");
+    if (room.phase !== "lobby") throw new Error("Chỉ có thể đổi tên trong phòng chờ!");
+    if (!room.players.some((p: any) => p.id === targetId)) throw new Error("Người chơi không còn trong phòng!");
+    if (room.players.some((p: any) => p.id !== targetId && p.name.toLocaleLowerCase() === newName.toLocaleLowerCase())) {
+      throw new Error("Tên này đã được sử dụng trong phòng!");
+    }
+
+    transaction.update(roomRef, {
+      players: room.players.map((p: any) => p.id === targetId ? { ...p, name: newName } : p)
+    });
+  });
+}
+
 /**
  * Lấy danh sách các phòng game công khai
  */

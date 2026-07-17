@@ -1,5 +1,5 @@
-import React from "react";
-import { Bot, Play, ArrowLeft } from "lucide-react";
+import React, { useState } from "react";
+import { Bot, Play, ArrowLeft, Pencil, Check, X } from "lucide-react";
 import { GameState } from "../types";
 
 const bgPc = "/assets/images/bg/bg-pc-compressed.png";
@@ -11,6 +11,7 @@ interface WaitingRoomProps {
   playerId: string;
   playerName: string;
   onRemovePlayer: (playerId: string) => void;
+  onRenamePlayer: (playerId: string, newName: string) => Promise<void>;
   onAddBot: () => void;
   onLeave: () => void;
   onStartGame: () => void;
@@ -22,11 +23,32 @@ export default function WaitingRoom({
   playerId,
   playerName,
   onRemovePlayer,
+  onRenamePlayer,
   onAddBot,
   onLeave,
   onStartGame
 }: WaitingRoomProps) {
   const isHost = (activeGame.hostId || activeGame.players[0]?.id) === playerId;
+  const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
+  const [editedName, setEditedName] = useState("");
+  const [renameError, setRenameError] = useState("");
+
+  const beginRename = (targetId: string, currentName: string) => {
+    setEditingPlayerId(targetId);
+    setEditedName(currentName);
+    setRenameError("");
+  };
+
+  const submitRename = async () => {
+    if (!editingPlayerId || !editedName.trim()) return;
+    try {
+      await onRenamePlayer(editingPlayerId, editedName);
+      setEditingPlayerId(null);
+      setRenameError("");
+    } catch (error) {
+      setRenameError(error instanceof Error ? error.message : "Không thể đổi tên người chơi.");
+    }
+  };
 
   return (
     <div className="relative w-full z-10 flex flex-col items-center">
@@ -83,25 +105,43 @@ export default function WaitingRoom({
                 key={p.id}
                 className="p-3 bg-[#0a0c16]/80 border border-[#4437ac]/30 rounded-xl flex items-center justify-between hover:border-[#7ba2be]/55 transition-all text-left"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }}></span>
-                  <span className="text-xs text-white font-bold">
+                  {editingPlayerId === p.id ? (
+                    <input
+                      autoFocus
+                      value={editedName}
+                      maxLength={50}
+                      onChange={event => setEditedName(event.target.value)}
+                      onKeyDown={event => {
+                        if (event.key === "Enter") void submitRename();
+                        if (event.key === "Escape") setEditingPlayerId(null);
+                      }}
+                      className="min-w-0 flex-1 rounded-lg border border-[#7ba2be]/50 bg-[#030408] px-2 py-1 text-xs font-bold text-white outline-none"
+                    />
+                  ) : <span className="text-xs text-white font-bold truncate">
                     {p.name} {p.isBot ? "(Bot)" : p.id === playerId ? ((activeGame.hostId || activeGame.players[0]?.id) === playerId ? "(Bạn - Host)" : "(Bạn)") : ((activeGame.hostId || activeGame.players[0]?.id) === p.id ? "(Host)" : "")}
-                  </span>
+                  </span>}
                 </div>
 
                 {/* Cho phép Host đuổi người chơi khác hoặc xóa Bot */}
                 {isHost && p.id !== playerId && (
-                  <button
-                    onClick={() => onRemovePlayer(p.id)}
-                    className="text-[10px] text-[#7ba2be] hover:text-white font-bold px-2.5 py-1 rounded-lg bg-[#4437ac]/20 border border-[#4437ac]/40 hover:bg-[#4437ac]/40 transition-all cursor-pointer active:scale-95"
-                  >
-                    {p.isBot ? "Xóa AI" : "Đuổi / Kick"}
-                  </button>
+                  <div className="flex items-center gap-1 ml-2">
+                    {editingPlayerId === p.id ? <>
+                      <button onClick={() => void submitRename()} title="Lưu tên" className="p-1.5 rounded-lg bg-emerald-950/40 text-emerald-300"><Check className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setEditingPlayerId(null)} title="Hủy" className="p-1.5 rounded-lg bg-neutral-900 text-neutral-400"><X className="w-3.5 h-3.5" /></button>
+                    </> : (
+                      <button onClick={() => beginRename(p.id, p.name)} title="Đổi tên" className="p-1.5 rounded-lg bg-[#4437ac]/20 text-[#7ba2be] hover:text-white"><Pencil className="w-3.5 h-3.5" /></button>
+                    )}
+                    <button onClick={() => onRemovePlayer(p.id)} className="text-[10px] text-[#7ba2be] hover:text-white font-bold px-2.5 py-1 rounded-lg bg-[#4437ac]/20 border border-[#4437ac]/40 hover:bg-[#4437ac]/40 transition-all cursor-pointer active:scale-95">
+                      {p.isBot ? "Xóa AI" : "Đuổi / Kick"}
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
           </div>
+          {renameError && <p className="text-[11px] text-rose-400">{renameError}</p>}
 
           {/* Action thêm Bot */}
           {isHost && 12 > activeGame.players.length && (
