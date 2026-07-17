@@ -2481,7 +2481,9 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
       if (nearby) updatedState = activateCharacterAbility(updatedState, botId, nearby.id);
     }
 
-    updatedState.phase = "attack";
+    if (updatedState.phase !== "game_over") {
+      updatedState.phase = "attack";
+    }
   }
 
   // 3. GIAI ĐOẠN TẤN CÔNG ĐỐI THỦ
@@ -2557,6 +2559,20 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
 
     // Kết thúc lượt của Bot, chuyển turn sang người chơi kế tiếp
     if (updatedState.phase !== "game_over") {
+      const victoryBeforeTransition = checkVictory(updatedState.players);
+      if (victoryBeforeTransition) {
+        return {
+          ...updatedState,
+          phase: "game_over",
+          winnerAlignment: victoryBeforeTransition.winnerAlignment,
+          winnerPlayerIds: victoryBeforeTransition.winnerPlayerIds,
+          players: updatedState.players.map(p => ({ ...p, alignmentRevealed: true })),
+          logs: [
+            createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${victoryBeforeTransition.winnerAlignment.join(", ")}!`, "system"),
+            ...updatedState.logs
+          ]
+        };
+      }
       if (!updatedState.players.some(p => !p.isDead && p.character.name.startsWith("Noctis"))) {
         updatedState.players = updatedState.players.map(p => p.lightEquipmentDisabled ? { ...p, lightEquipmentDisabled: false } : p);
       }
@@ -2622,6 +2638,7 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
               ];
             }
           }
+          if (updatedState.phase === "game_over") return updatedState;
         }
 
         updatedState.turnIndex = nextIndex;

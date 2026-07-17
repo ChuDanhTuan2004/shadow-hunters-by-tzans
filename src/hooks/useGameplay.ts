@@ -1154,6 +1154,20 @@ export function useGameplay({
   // Helper kết thúc lượt chơi
   const endTurnTransition = (state: GameState): GameState => {
     const nextState = { ...state };
+    const victoryBeforeTransition = checkVictory(nextState.players);
+    if (victoryBeforeTransition) {
+      return {
+        ...nextState,
+        phase: "game_over",
+        winnerAlignment: victoryBeforeTransition.winnerAlignment,
+        winnerPlayerIds: victoryBeforeTransition.winnerPlayerIds,
+        players: nextState.players.map(p => ({ ...p, alignmentRevealed: true })),
+        logs: [
+          createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${victoryBeforeTransition.winnerAlignment.join(", ")}!`, "system"),
+          ...nextState.logs
+        ]
+      };
+    }
     if (!nextState.players.some(p => !p.isDead && p.character.name.startsWith("Noctis"))) {
       nextState.players = nextState.players.map(p => p.lightEquipmentDisabled ? { ...p, lightEquipmentDisabled: false } : p);
     }
@@ -1222,6 +1236,7 @@ export function useGameplay({
           ];
         }
       }
+      if (nextState.phase === "game_over") return nextState;
     }
 
     nextState.turnIndex = nextIndex;
