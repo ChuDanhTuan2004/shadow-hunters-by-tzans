@@ -63,6 +63,7 @@ export interface Player {
   abilityDisabled?: boolean;  // Ellen: vô hiệu hóa kỹ năng bị chọn vĩnh viễn
   extraTurnCount?: number;
   killsCount?: number;
+  charlesKilledThirdOrLater?: boolean; // Charles kết liễu người chết thứ 3 trở đi của toàn trận
   agnesTargetPlayerId?: string | null;
   bryanKilledHp13?: boolean;
   mgangaPoisoned?: boolean;

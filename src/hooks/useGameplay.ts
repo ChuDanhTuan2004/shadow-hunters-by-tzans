@@ -720,6 +720,10 @@ export function useGameplay({
     const hasAlreadyAttackedThisTurn = activeGame.lastAttackDamage !== null;
 
     if (isCharles && hasAlreadyAttackedThisTurn) {
+      // Chém Đôi chỉ được kích hoạt một lần trong mỗi lượt. Cờ này được
+      // reset khi Charles bắt đầu lượt tiếp theo.
+      if (currentPlayer.hasUsedAbility) return;
+
       nextState.players = nextState.players.map(p => {
         if (p.id === currentPlayer.id) {
           const nextHp = Math.max(0, p.currentHp - 2);
@@ -727,7 +731,8 @@ export function useGameplay({
           return {
             ...p,
             currentHp: nextHp,
-            isDead
+            isDead,
+            hasUsedAbility: true
           };
         }
         return p;
@@ -743,7 +748,17 @@ export function useGameplay({
           createLog(`☠️ Charles [${currentPlayer.name}] đã gục ngã vì phản lực kiếm pháp!`, "reveal"),
           ...nextState.logs
         ];
-        if (nextState.phase !== "game_over") {
+        const victoryResult = checkVictory(nextState.players);
+        if (victoryResult) {
+          nextState.phase = "game_over";
+          nextState.winnerAlignment = victoryResult.winnerAlignment;
+          nextState.winnerPlayerIds = victoryResult.winnerPlayerIds;
+          nextState.players = nextState.players.map(p => ({ ...p, alignmentRevealed: true }));
+          nextState.logs = [
+            createLog(`🏆 TRẬN ĐẤU KẾT THÚC! Chiến thắng thuộc về phe: ${victoryResult.winnerAlignment.join(", ")}!`, "system"),
+            ...nextState.logs
+          ];
+        } else {
           nextState = endTurnTransition(nextState);
         }
         if (gameMode === "solo") {
@@ -761,7 +776,7 @@ export function useGameplay({
     nextState = performAttack(nextState, currentPlayer.id, targetId);
 
     const checkCharles = nextState.players.find(p => p.id === currentPlayer.id)!;
-    const canCharlesStrikeAgain = checkCharles.character.name.startsWith("Charles") && checkCharles.alignmentRevealed && !checkCharles.isDead && !checkCharles.abilityDisabled;
+    const canCharlesStrikeAgain = checkCharles.character.name.startsWith("Charles") && checkCharles.alignmentRevealed && !checkCharles.isDead && !checkCharles.abilityDisabled && !checkCharles.hasUsedAbility;
 
     if (canCharlesStrikeAgain && "game_over" !== nextState.phase) {
       nextState.logs = [
@@ -1152,7 +1167,7 @@ export function useGameplay({
     if (currentPlayer.extraTurnCount && currentPlayer.extraTurnCount > 0 && !currentPlayer.isDead) {
       nextState.players = nextState.players.map(p =>
         p.id === currentPlayer.id
-          ? { ...p, extraTurnCount: p.extraTurnCount! - 1 }
+          ? { ...p, extraTurnCount: p.extraTurnCount! - 1, hasUsedAbility: false }
           : p
       );
       nextState.phase = "roll" as const;
@@ -1271,7 +1286,7 @@ export function useGameplay({
       }
     }
 
-    if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen")) {
+    if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen") || nextPlayer.character.name.startsWith("Charles")) {
       nextState.players = nextState.players.map(p =>
         p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
       );

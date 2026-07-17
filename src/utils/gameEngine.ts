@@ -343,8 +343,8 @@ export function checkVictory(players: Player[]): VictoryResult | null {
     if (charName.startsWith("Bob") && 3 <= p.equipments.length) {
       neutralInstantWin = true;
     }
-    // Charles diệt >= 3 người
-    if (charName.startsWith("Charles") && 3 <= (p.killsCount || 0)) {
+    // Charles tự tay kết liễu người chết thứ 3 trở đi của toàn trận
+    if (charName.startsWith("Charles") && p.charlesKilledThirdOrLater) {
       neutralInstantWin = true;
     }
     // David có >= 3 trang bị thánh tích
@@ -409,7 +409,7 @@ export function checkVictory(players: Player[]): VictoryResult | null {
     } else if (charName.startsWith("Bob")) {
       neutralWon = 3 <= p.equipments.length;
     } else if (charName.startsWith("Charles")) {
-      neutralWon = 3 <= (p.killsCount || 0);
+      neutralWon = !!p.charlesKilledThirdOrLater;
     } else if (charName.startsWith("Daniel")) {
       neutralWon = (null !== firstDead && firstDead.id === p.id) || (false === p.isDead && hunterWins);
     } else if (charName.startsWith("Bryan")) {
@@ -671,6 +671,14 @@ export function performAttack(
       // Tăng số mạng hạ gục cho attacker
       attacker.killsCount = (attacker.killsCount || 0) + 1;
       logs.push(createLog(`⚔️ ${attacker.name} ghi nhận mạng hạ gục thứ ${attacker.killsCount}!`, "system"));
+
+      // Charles thắng nếu chính đòn tấn công của mình tạo ra người chết thứ 3
+      // (hoặc bất kỳ người chết nào sau đó) trong toàn trận.
+      const totalDeaths = updatedPlayers.filter(p => p.isDead).length;
+      if (attacker.character.name.startsWith("Charles") && totalDeaths >= 3) {
+        attacker.charlesKilledThirdOrLater = true;
+        logs.push(createLog(`🎯 [Mục Tiêu Charles] ${attacker.name} đã kết liễu người chết thứ ${totalDeaths} của trận đấu!`, "system"));
+      }
 
       // Bryan: lật mặt nếu giết mục tiêu hp <= 12, ghi nhận chỉ tiêu nếu giết mục tiêu hp >= 13
       if (attacker.character.name.startsWith("Bryan") && !attacker.abilityDisabled) {
@@ -2235,8 +2243,8 @@ export function executeBotTurn(gameState: GameState, botId: string): GameState {
           }
         }
 
-        // George, David, Mganga, Helen: đầu lượt reset trạng thái sử dụng kỹ năng
-        if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen")) {
+        // Các kỹ năng dùng một lần mỗi lượt được reset ở đầu lượt mới.
+        if (nextPlayer.character.name.startsWith("George") || nextPlayer.character.name.startsWith("David") || nextPlayer.character.name.startsWith("Mganga") || nextPlayer.character.name.startsWith("Helen") || nextPlayer.character.name.startsWith("Charles")) {
           updatedState.players = updatedState.players.map(p =>
             p.id === nextPlayer.id ? { ...p, hasUsedAbility: false } : p
           );

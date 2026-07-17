@@ -94,7 +94,7 @@ export default function RulesModal({ isOpen, onClose }: RulesModalProps) {
                 <ul className="text-[11px] text-amber-200/80 space-y-0.5 list-disc pl-4">
                   <li><strong>Allie:</strong> Sống sót đến khi trò chơi kết thúc.</li>
                   <li><strong>Bob:</strong> Sở hữu từ 3 trang bị trở lên.</li>
-                  <li><strong>Charles:</strong> Hạ gục từ 3 người chơi trở lên.</li>
+                  <li><strong>Charles:</strong> Tự tay kết liễu người chết thứ 3 trở đi của toàn trận.</li>
                   <li><strong>Daniel:</strong> Là người chết đầu tiên, hoặc sống sót khi phe Hunter thắng.</li>
                   <li><strong>Bryan:</strong> Hạ gục người có HP tối đa ≥ 13, hoặc đang ở Bàn Thờ Cổ khi game kết thúc.</li>
                   <li><strong>Catherine:</strong> Là người chết đầu tiên, hoặc lọt vào 2 người sống sót cuối cùng.</li>
