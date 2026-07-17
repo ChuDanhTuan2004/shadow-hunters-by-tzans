@@ -974,7 +974,9 @@ export function useGameCard(
   let updatedPlayers = gameState.players.map(p => ({ ...p, character: { ...p.character } }));
   const source = updatedPlayers.find(p => p.id === sourcePlayerId)!;
   const logs: GameLog[] = [];
-  let hermitTargetIdentityShown = gameState.hermitTargetIdentityShown;
+  // Firestore không chấp nhận undefined. Các lá không tạo hiệu ứng xem trộm
+  // phải giữ trạng thái này ở null thay vì ghi undefined vào document phòng.
+  let hermitTargetIdentityShown = gameState.hermitTargetIdentityShown ?? null;
 
   const card = getCardById(cardId);
   if (!card) return gameState;
